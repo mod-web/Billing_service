@@ -98,5 +98,11 @@ services:
     depends_on:
       - init-kafka
 
+  auth_service:
+    build:
+      context: ./auth_app
+    env_file:
+      - .env
+
 volumes:
   postgres_data:
