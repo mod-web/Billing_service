@@ -1,9 +1,12 @@
+import json
+
 from yookassa import Configuration, Payment
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.sql import text
 
 from src.db.base import get_session
+from src.services.kafka import get_kafka
 from src.models.models import orders
 
 
@@ -18,6 +21,7 @@ router = APIRouter()
 async def start_payment(
         order_id: str,
         session = Depends(get_session),
+        producer = Depends(get_kafka)
 ):
     Configuration.account_id = 243091
     Configuration.secret_key = 'test_3SWAMPhw_Q1RcbAjaGY_GQpts4CSQ5D6Txv7ivHpwMg'
@@ -36,10 +40,10 @@ async def start_payment(
     }, order_id)
 
     confirmation_url = payment.confirmation.confirmation_url
-    print(payment.id)
-    print(payment.status)
-    print(payment.created_at)
-    print(payment.amount.value)
+
+    data_transaction = {'payment_id': payment.id,
+                        'status': payment.status,
+                        'created_at': payment.created_at}
 
 
     statement = text(f"""UPDATE public.orders
@@ -52,16 +56,14 @@ async def start_payment(
     except Exception as e:
         print(str(e))
 
+    def acked(err, msg):
+        if err is not None:
+            print("Failed to deliver message: %s: %s" % (str(msg), str(err)))
+        else:
+            print("Message produced: %s" % (str(msg)))
 
+    producer.produce('yookassa-log', key=str(payment.id), value=json.dumps(data_transaction), callback=acked)
 
-    # from confluent_kafka import Producer
-    # import socket
-    #
-    # conf = {'bootstrap.servers': "kafka:29092",
-    #         'client.id': socket.gethostname()}
-    #
-    # producer = Producer(conf)
-
-
+    producer.poll(1)
 
     return confirmation_url

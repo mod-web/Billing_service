@@ -14,10 +14,10 @@ services:
       - postgres_data:/var/lib/postgresql/data
     env_file:
       - ./.env
-    environment:
-      POSTGRES_DB: "${DB_NAME}"
-      POSTGRES_USER: "${DB_USER}"
-      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+#    environment:
+#      POSTGRES_DB: "${DB_NAME}"
+#      POSTGRES_USER: "${DB_USER}"
+#      POSTGRES_PASSWORD: "${DB_PASSWORD}"
     ports:
       - "5432:5432"
 
@@ -51,7 +51,7 @@ services:
 #  control-center:
 #    image: confluentinc/cp-enterprise-control-center:7.4.1
 #    hostname: control-center
-#    container_name: control-center
+#    container_name: control
 #    depends_on:
 #      - kafka
 #    ports:
@@ -76,10 +76,27 @@ services:
 
       echo -e 'Creating kafka topics'
       kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic yookassa-log --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic ready-topic --replication-factor 1 --partitions 1
 
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:29092 --list
       "
+
+  check_payment_consumer:
+    build: ./check_payment_consumer
+    restart: on-failure
+    env_file:
+      - ./.env
+    depends_on:
+      - init-kafka
+
+  status_payment_consumer:
+    build: ./status_payment_consumer
+    restart: on-failure
+    env_file:
+      - ./.env
+    depends_on:
+      - init-kafka
 
 volumes:
   postgres_data:
