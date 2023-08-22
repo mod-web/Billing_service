@@ -1,5 +1,15 @@
 from argparse import ArgumentParser
 from confluent_kafka import Consumer, Producer, OFFSET_BEGINNING
+import requests
+
+
+def change_status_order(payment_id, status):
+    params = {'status': status}
+    url = f'http://billing_service:8001/api/v1/orders/{payment_id}'
+    with requests.Session() as session:
+        with session.put(url=url, params=params) as response:
+            if response.status_code == 200:
+                return response.json()
 
 
 def acked(err, msg):
@@ -13,11 +23,8 @@ def status_payment(message):
     payment_id = message.key().decode('utf-8')
     payment_status = message.value().decode('utf-8')
 
-    if payment_status == 'succeeded':
-        print(f'Payment change: {payment_id} - {payment_status}!')
-    elif payment_status == 'canceled':
-        print(f'Payment change: {payment_id} - {payment_status}!')
-
+    change_status_order(payment_id, payment_status)
+    print(f'Payment change: {payment_id} - {payment_status}!')
 
 if __name__ == '__main__':
     # Parse the command line.

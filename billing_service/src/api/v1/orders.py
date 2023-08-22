@@ -26,3 +26,30 @@ async def new_order(
     except Exception as e:
         print(str(e))
     return str(order_id)
+
+
+@router.put(
+    "/{item_id}",
+    responses={403: {"description": "Operation forbidden"}},
+)
+async def new_order(
+    item_id: str,
+    status: str,
+    session = Depends(get_session),
+) -> str:
+
+    statement = text(f"""UPDATE public.orders
+                         SET status='{status}'
+                         WHERE payment_id='{item_id}';""")
+    try:
+        await session.execute(statement)
+        await session.commit()
+    except Exception as e:
+        print(str(e))
+
+    if status == 'succeeded':
+        print('hhhh', status)
+        print('wwww', item_id)
+    elif status == 'canceled':
+        pass
+    return 'status changed'
