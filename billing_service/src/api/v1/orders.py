@@ -61,17 +61,18 @@ async def new_order(
 
 @router.put(
     "/{payment_id}",
-    responses={403: {"description": "Operation forbidden"}},
+    summary='Change status a order',
+    description='Change status a order',
 )
 async def change_status(
-    item_id: str,
+    payment_id: str,
     status: str,
     session = Depends(get_session),
 ) -> str:
 
     try:
         order_res = await session.execute(orders.update()
-                                               .where(orders.c.payment_id == item_id)
+                                               .where(orders.c.payment_id == payment_id)
                                                .values(status=status,
                                                        update_at=datetime.now())
                                                .returning(orders.c.id))
@@ -79,7 +80,6 @@ async def change_status(
         await session.commit()
 
         if status == 'succeeded':
-            print(111111111111111, order_id)
             subscribe_res = await session.execute(user_subscribes.update()
                                                        .where(user_subscribes.c.order_id == order_id)
                                                        .values(active=True,

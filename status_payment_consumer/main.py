@@ -9,6 +9,7 @@ def change_status_order(payment_id, status):
     with requests.Session() as session:
         with session.put(url=url, params=params) as response:
             if response.status_code == 200:
+                print(f'Payment change: {payment_id} - {status}!')
                 return response.json()
 
 
@@ -22,9 +23,7 @@ def acked(err, msg):
 def status_payment(message):
     payment_id = message.key().decode('utf-8')
     payment_status = message.value().decode('utf-8')
-
     change_status_order(payment_id, payment_status)
-    print(f'Payment change: {payment_id} - {payment_status}!')
 
 if __name__ == '__main__':
     # Parse the command line.
