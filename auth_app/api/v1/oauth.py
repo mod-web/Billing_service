@@ -3,7 +3,6 @@ from http import HTTPStatus
 from flask import Blueprint, request, jsonify
 
 from database.session_decorator import rate_limit
-from services.oauth import get_service_instance
 from services.tokens import create_access_and_refresh_tokens
 
 oauth = Blueprint('oauth', __name__)

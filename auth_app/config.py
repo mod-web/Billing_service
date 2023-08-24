@@ -19,22 +19,4 @@ class RedisConfig(BaseSettings):
     port: int = Field(env="REDIS_PORT")
 
 
-class JaegerConfig(BaseSettings):
-    host: str = Field(env="JAEGER_HOST")
-    port: int = Field(env="JAEGER_PORT")
-
-
-class GoogleConfig(BaseSettings):
-    client_id: str = Field(env="GOOGLE_CLIENT_ID")
-    secret: str = Field(env="GOOGLE_SECRET")
-
-
-class YandexConfig(BaseSettings):
-    client_id: str = Field(env="YANDEX_CLIENT_ID")
-    secret: str = Field(env="YANDEX_SECRET")
-
-
 redis_config = RedisConfig()
-jaeger_config = JaegerConfig()
-google_config = GoogleConfig()
-yandex_config = YandexConfig()

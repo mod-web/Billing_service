@@ -12,4 +12,4 @@ EXPOSE 5000
 
 COPY . .
 
-CMD python3 -m flask --app --reload --host=0.0.0.0
+CMD python -m flask run --host 0.0.0.0
