@@ -6,10 +6,9 @@ from flasgger import Swagger
 from opentelemetry.sdk.resources import Resource, SERVICE_NAME
 
 from api.v1.auth import auth
-from api.v1.oauth import oauth
 from api.v1.roles import roles
 from api.v1.users import users
-from config import POSTGRES_CONN_STR, JWT_SECRET_KEY, JWT_ALGORITHM, JAEGER_TRACER_ENABLE
+from config import POSTGRES_CONN_STR, JWT_SECRET_KEY, JWT_ALGORITHM
 from flask_swagger_ui import get_swaggerui_blueprint
 
 from services.user import UserService
@@ -44,10 +43,9 @@ def create_superuser(
     UserService().create_superuser(password, login, first_name, last_name)
 
 
-app.register_blueprint(auth, url_prefix="/api/v1/auth")
-app.register_blueprint(roles, url_prefix="/api/v1/roles")
-app.register_blueprint(users, url_prefix="/api/v1/users")
-app.register_blueprint(oauth, url_prefix="/api/v1/oauth")
+app.register_blueprint(auth, url_prefix="/auth-api/v1/auth")
+app.register_blueprint(roles, url_prefix="/auth-api/v1/roles")
+app.register_blueprint(users, url_prefix="/auth-api/v1/users")
 app.register_blueprint(swagger_blueprint)
 app.cli.add_command(create_superuser)
 
