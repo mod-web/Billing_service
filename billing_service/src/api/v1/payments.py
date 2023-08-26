@@ -2,12 +2,10 @@ import json
 
 from yookassa import Configuration, Payment
 from fastapi import APIRouter, Depends
-from sqlalchemy import select
 from sqlalchemy.sql import text
 
 from src.db.base import get_session
 from src.services.kafka import get_kafka
-from src.models.models import orders
 
 
 router = APIRouter()
@@ -26,9 +24,20 @@ async def start_payment(
     Configuration.account_id = 243091
     Configuration.secret_key = 'test_3SWAMPhw_Q1RcbAjaGY_GQpts4CSQ5D6Txv7ivHpwMg'
 
+    try:
+        stmt = text(f"""SELECT public.type_subscribes.name, public.type_subscribes.price FROM public.orders
+                        JOIN public.user_subscribes ON public.orders.id = public.user_subscribes.order_id
+                        JOIN public.type_subscribes ON public.user_subscribes.type_subscribe_id =public.type_subscribes.id
+                        WHERE public.orders.id = '{order_id}'""")
+        res = await session.execute(stmt)
+        await session.commit()
+        data_subscribe = res.fetchone()
+    except Exception as e:
+        print(str(e))
+
     payment = Payment.create({
         "amount": {
-            "value": "100.00",
+            "value": f"{data_subscribe[1]}",
             "currency": "RUB"
         },
         "confirmation": {
@@ -36,7 +45,7 @@ async def start_payment(
             "return_url": "https://www.example.com/return_url"
         },
         "capture": True,
-        "description": "Заказ №1"
+        "description": f'Order "{data_subscribe[0]} - {int(data_subscribe[1])} RUB"'
     }, order_id)
 
     confirmation_url = payment.confirmation.confirmation_url
