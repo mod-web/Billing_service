@@ -10,7 +10,7 @@ def update_subscription_status(subscribe_id, action):
     params = {
         'action': action
     }
-    url = f'http://billing_service:8001/api/v1/subscriptions/{subscribe_id}'
+    url = f'http://billing_api:8001/api/v1/subscriptions/{subscribe_id}'
     with requests.Session() as session:
         with session.put(url=url, params=params) as response:
             if response.status_code == 200:

@@ -5,7 +5,7 @@ import requests
 
 
 def change_status_order(payment_id, params):
-    url = f'http://billing_service:8001/api/v1/orders/{payment_id}'
+    url = f'http://billing_api:8001/api/v1/orders/{payment_id}'
     with requests.Session() as session:
         with session.put(url=url, params=params) as response:
             if response.status_code == 200:

@@ -47,7 +47,7 @@ async def new_order(
         params = {'user_id': user_id,
                   'type_subscribe_id': type_subscribe_id,
                   'order_id': str(res.inserted_primary_key[0])}
-        url = f'http://billing_service:8001/api/v1/subscriptions/'
+        url = f'http://billing_api:8001/api/v1/subscriptions/'
 
         async with aiohttp.ClientSession() as s:
             async with s.post(url=url, params=params) as response:
