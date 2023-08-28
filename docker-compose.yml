@@ -100,12 +100,12 @@ services:
 
   auth_service:
     build:
-      context: ./auth_app
+      context: ./auth_service
       dockerfile: ./Dockerfile
     env_file:
-      - auth_app/.env
+      - auth_service/.env
     volumes:
-      - ./auth_app:/app
+      - ./auth_service:/app
 
   redis:
     image: redis:7.0.8
