@@ -16,3 +16,6 @@ make build
 ```shell
 make fill
 ```
+
+### Весь функционал представлен по данному адресу:
+<link src="http://127.0.0.1/api/openapi">http://127.0.0.1/api/openapi</link>
