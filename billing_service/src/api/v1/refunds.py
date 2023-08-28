@@ -51,13 +51,13 @@ async def create_refund(
         payment_id = res.get('payment_id')
 
         match period:
-            case 'month':
+            case '1mon':
                 num = 1
-            case 'three_month':
+            case '3mon':
                 num = 3
-            case 'six_month':
+            case '6mon':
                 num = 6
-            case 'year':
+            case '12mon':
                 num = 12
 
         date_fire = start_active_at + relativedelta(months=+num)

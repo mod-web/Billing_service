@@ -13,7 +13,7 @@ load_dotenv()
 
 class Settings(BaseSettings):
     DB_HOST: str = Field('billing_postgres')
-    DB_NAME: str = Field('admin_db')
+    DB_NAME: str = Field('billing_db')
     DB_USER: str = Field('user')
     DB_PASS: str = Field('pass')
     DB_PORT: str = Field('5432')

@@ -1,8 +1,8 @@
 """Database creation
 
-Revision ID: 8dfde61fd397
+Revision ID: 3af2de274b82
 Revises: 
-Create Date: 2023-08-23 17:38:33.956672
+Create Date: 2023-08-27 11:29:18.415512
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '8dfde61fd397'
+revision: str = '3af2de274b82'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,6 +24,7 @@ def upgrade() -> None:
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('user_id', sa.UUID(), nullable=False),
     sa.Column('payment_id', sa.UUID(), nullable=True),
+    sa.Column('renew', sa.Boolean(), nullable=True),
     sa.Column('status', sa.String(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('update_at', sa.DateTime(), nullable=True),
@@ -34,7 +35,7 @@ def upgrade() -> None:
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('name', sa.String(), nullable=True),
     sa.Column('price', sa.DECIMAL(), nullable=True),
-    sa.Column('period', sa.Enum('month', 'three_month', 'six_month', 'year', name='periodTypes'), nullable=True),
+    sa.Column('period', sa.Enum('1mon', '3mon', '6mon', '12mon', name='periodTypes'), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('id')
     )

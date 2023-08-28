@@ -67,6 +67,7 @@ async def new_order(
 async def change_status(
     payment_id: str,
     status: str,
+    renew: bool,
     session = Depends(get_session),
 ) -> str:
 
@@ -74,6 +75,7 @@ async def change_status(
         order_res = await session.execute(orders.update()
                                                .where(orders.c.payment_id == payment_id)
                                                .values(status=status,
+                                                       renew=renew,
                                                        update_at=datetime.now())
                                                .returning(orders.c.id))
         order_id = str(order_res.first()[0])

@@ -1,3 +1,4 @@
+import json
 from argparse import ArgumentParser
 import time
 
@@ -29,7 +30,14 @@ def check_payment(message):
         producer.produce(message.topic(), key=message.key(), value=message.value(), callback=acked)
         producer.poll(10)
     else:
-        producer.produce('ready-topic', key=message.key(), value=payment.status, callback=acked)
+        renew = payment.payment_method.saved
+
+        res = {'status': payment.status,
+               'renew': renew}
+
+        res = json.dumps(res)
+
+        producer.produce('ready-topic', key=message.key(), value=res, callback=acked)
         producer.poll(1)
         print(f'Payment: {payment_id} - {payment.status}! -> ready-topic')
 

@@ -1,15 +1,20 @@
 import json
 from argparse import ArgumentParser
 from confluent_kafka import Consumer, Producer, OFFSET_BEGINNING
+from yookassa import Configuration, Payment
+
 import requests
 
 
-def change_status_order(payment_id, params):
-    url = f'http://billing_service:8001/api/v1/orders/{payment_id}'
+def update_subscription_status(subscribe_id, action):
+    params = {
+        'action': action
+    }
+    url = f'http://billing_service:8001/api/v1/subscriptions/{subscribe_id}'
     with requests.Session() as session:
         with session.put(url=url, params=params) as response:
             if response.status_code == 200:
-                print(f'Payment change: {payment_id} - {params["status"]}!')
+                print(f'Action {action}: {subscribe_id}')
                 return response.json()
 
 
@@ -20,10 +25,30 @@ def acked(err, msg):
         print("Message produced: %s" % (str(msg)))
 
 
-def status_payment(message):
-    payment_id = message.key().decode('utf-8')
+def prolong(message):
+    subscribe_id = message.key().decode('utf-8')
     payment_data = json.loads(message.value().decode('utf-8'))
-    change_status_order(payment_id, payment_data)
+
+    Configuration.account_id = 243091
+    Configuration.secret_key = 'test_3SWAMPhw_Q1RcbAjaGY_GQpts4CSQ5D6Txv7ivHpwMg'
+
+    print(payment_data['payment_id'])
+
+    payment = Payment.create({
+        "amount": {
+            "value": f"{payment_data['price']}.00",
+            "currency": "RUB"
+        },
+        "capture": True,
+        "payment_method_id": payment_data['payment_id'],
+        "description": "Renew order"
+    })
+
+    if payment.status == 'succeeded':
+        update_subscription_status(subscribe_id, 'prolong')
+    else:
+        update_subscription_status(subscribe_id, 'cancel')
+
 
 if __name__ == '__main__':
     # Parse the command line.
@@ -32,7 +57,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     conf = {'bootstrap.servers': "kafka:29092",
-            'group.id': "status_payment_consumer",
+            'group.id': "prolong_consumer",
             'auto.offset.reset': 'smallest'}
 
     # Create Consumer instance
@@ -47,7 +72,7 @@ if __name__ == '__main__':
         print('Reset complete')
 
     # Subscribe to topic
-    topic = "ready-topic"
+    topic = "prolong-topic"
     consumer.subscribe([topic], on_assign=reset_offset)
 
     # Poll for new messages from Kafka and print them.
@@ -64,7 +89,7 @@ if __name__ == '__main__':
                 print("ERROR: %s".format(msg.error()))
             else:
                 # Extract the (optional) key and value, and print.
-                status_payment(msg)
+                prolong(msg)
 
     except KeyboardInterrupt:
         pass

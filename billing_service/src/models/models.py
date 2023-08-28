@@ -20,6 +20,7 @@ orders = Table(
     Column('payment_id',
            UUID(as_uuid=True),
            nullable=True),
+    Column('renew', Boolean, default=False),
     Column('status', String),
     Column('created_at', DateTime, default=datetime.now()),
     Column('update_at', DateTime, default=datetime.now()),
@@ -66,9 +67,9 @@ type_subscribes = Table(
            DECIMAL),
     Column('period',
            Enum(
-               'month',
-               'three_month',
-               'six_month',
-               'year',
+               '1mon',
+               '3mon',
+               '6mon',
+               '12mon',
                name='periodTypes'))
 )

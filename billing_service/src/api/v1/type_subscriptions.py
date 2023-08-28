@@ -47,17 +47,17 @@ async def add_type_subscription(
 
 
 @router.delete(
-    '/{subscription_id}',
-    description='Cancel a subscription',
-    summary='Cancel a subscription',
+    '/{type_subscription_id}',
+    description='Delete a subscription',
+    summary='Delete a subscription',
 )
 async def delete_type_subscription(
-    subscription_id: str,
+    type_subscription_id: str,
     session = Depends(get_session),
 ):
     try:
         await session.execute(
-            type_subscribes.delete().where(type_subscribes.c.id == subscription_id))
+            type_subscribes.delete().where(type_subscribes.c.id == type_subscription_id))
         await session.commit()
         return 'deleted'
     except Exception as e:

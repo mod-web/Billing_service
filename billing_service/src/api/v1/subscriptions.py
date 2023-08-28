@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlalchemy.sql import text
@@ -48,18 +49,56 @@ async def add_subscription(
         print(str(e))
 
 
+@router.put(
+    '/{subscription_id}',
+    description='Update a subscription',
+    summary='Update a subscription',
+)
+async def update_subscription(
+    action: str,
+    subscription_id: str,
+    session = Depends(get_session),
+):
+    if action == 'cancel':
+        try:
+            subscribe_res = await session.execute(user_subscribes.update()
+                                                  .where(user_subscribes.c.id == subscription_id)
+                                                  .values(active=False,
+                                                          update_at=datetime.now())
+                                                  .returning(user_subscribes.c.id))
+            subscribe_id = str(subscribe_res.first()[0])
+            await session.commit()
+            return subscribe_id
+        except Exception as e:
+            print(str(e))
+
+    elif action == 'prolong':
+        try:
+            subscribe_res = await session.execute(user_subscribes.update()
+                                                  .where(user_subscribes.c.id == subscription_id)
+                                                  .values(active=True,
+                                                          start_active_at=datetime.now(),
+                                                          update_at=datetime.now())
+                                                  .returning(user_subscribes.c.id))
+            subscribe_id = str(subscribe_res.first()[0])
+            await session.commit()
+            return subscribe_id
+        except Exception as e:
+            print(str(e))
+
+
 @router.delete(
-    '/{type_subscriptions_id}',
+    '/{subscription_id}',
     description='Delete a subscription',
     summary='Delete a subscription',
 )
 async def delete_subscription(
-    type_subscriptions_id: str,
+    subscription_id: str,
     session = Depends(get_session),
 ):
     try:
         await session.execute(
-            user_subscribes.delete().where(user_subscribes.c.id == type_subscriptions_id))
+            user_subscribes.delete().where(user_subscribes.c.id == subscription_id))
         await session.commit()
         return 'deleted'
     except Exception as e:

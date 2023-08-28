@@ -2,32 +2,36 @@ version: '3.10'
 
 services:
   billing_service:
+    restart: always
     build: ./billing_service
     env_file:
       - ./billing_service/.env
     volumes:
       - ./billing_service:/app
+    depends_on:
+      - billing_postgres
 
   billing_postgres:
+    restart: on-failure
     image: postgres:alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init_db/fill.sql:/fill.sql
     env_file:
       - ./.env
-#    environment:
-#      POSTGRES_DB: "${DB_NAME}"
-#      POSTGRES_USER: "${DB_USER}"
-#      POSTGRES_PASSWORD: "${DB_PASSWORD}"
     ports:
       - "5432:5432"
 
   nginx:
+    restart: on-failure
     image: nginx:latest
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf:/etc/nginx/conf.d:ro
     ports:
       - "80:80"
+    depends_on:
+      - billing_service
 
   zookeeper:
     image: confluentinc/cp-zookeeper:6.1.1
@@ -77,10 +81,12 @@ services:
       echo -e 'Creating kafka topics'
       kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic yookassa-log --replication-factor 1 --partitions 1
       kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic ready-topic --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic prolong-topic --replication-factor 1 --partitions 1
 
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:29092 --list
       "
+
 
   check_payment_consumer:
     build: ./check_payment_consumer
@@ -92,6 +98,14 @@ services:
 
   status_payment_consumer:
     build: ./status_payment_consumer
+    restart: on-failure
+    env_file:
+      - ./.env
+    depends_on:
+      - init-kafka
+
+  prolong_consumer:
+    build: ./prolong_consumer
     restart: on-failure
     env_file:
       - ./.env

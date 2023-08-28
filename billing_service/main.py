@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
 from config import settings
-from src.api.v1 import orders, payments, refunds, subscriptions, type_subscriptions, buy_subscriptions
+from src.api.v1 import orders, payments, refunds, subscriptions, type_subscriptions, actions
 
 
 app = FastAPI(
@@ -18,7 +18,7 @@ app.include_router(payments.router, prefix='/api/v1/payments', tags=['Payments']
 app.include_router(refunds.router, prefix='/api/v1/refunds', tags=['Refunds'])
 app.include_router(subscriptions.router, prefix='/api/v1/subscriptions', tags=['Subscriptions'])
 app.include_router(type_subscriptions.router, prefix='/api/v1/type_subscriptions', tags=['Type subscriptions'])
-app.include_router(buy_subscriptions.router, prefix='/api/v1/buy_subscriptions', tags=['Buy subscriptions'])
+app.include_router(actions.router, prefix='/api/v1/actions', tags=['External'])
 
 
 if __name__ == '__main__':
