@@ -8,7 +8,7 @@ from sqlalchemy.exc import NoResultFound
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from database.db import engine, Base
-from database.db_models import User, History, Roles, UsersRoles, OauthUsers
+from database.db_models import User, History, Roles, UsersRoles
 from database.session_decorator import get_session
 from services.utils import get_device_type
 
@@ -229,52 +229,6 @@ class UserService:
             ),
         )
         session.commit()
-
-    @get_session()
-    def register_user_oauth(
-        self,
-        user_agent: str,
-        email: str,
-        oauth_id: str,
-        oauth_first_name: str,
-        oauth_last_name: str,
-        session: sqlalchemy.orm.Session = None,
-    ) -> dict[str, str]:
-        """Юзер добавляется в Users и в OauthUsers, добавляется запись в историю логинов."""
-        try:
-            user = session.query(User).filter(User.login == email).one()
-        except NoResultFound:
-            session.add(
-                User(
-                    password=generate_password_hash(str(randint(1, 10000))),
-                    login=email,
-                    first_name=oauth_first_name,
-                    last_name=oauth_last_name,
-                ),
-            )
-            session.commit()
-            user = session.query(User).filter(User.login == email).one()
-
-        try:
-            session.query(OauthUsers).filter(
-                OauthUsers.oauth_id == oauth_id,
-                OauthUsers.oauth_email == email,
-            ).one()
-        except NoResultFound:
-            session.add(
-                OauthUsers(
-                    user_id=user.id,
-                    oauth_id=oauth_id,
-                    oauth_email=email,
-                ),
-            )
-            session.commit()
-
-        self.add_login_to_history(user_id=user.id, user_agent=user_agent)
-
-        user = self._transform_query_to_dict(user)
-        user['roles'] = self.get_roles_names_for_user(user['id'])
-        return user
 
 
 user_service = UserService()

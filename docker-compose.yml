@@ -103,7 +103,9 @@ services:
       context: ./auth_app
       dockerfile: ./Dockerfile
     env_file:
-      - .env
+      - auth_app/.env
+    volumes:
+      - ./auth_app:/app
 
   redis:
     image: redis:7.0.8

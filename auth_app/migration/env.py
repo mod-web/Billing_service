@@ -7,7 +7,7 @@ from alembic import context
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
-from config import POSTGRES_CONN_STR
+from auth_config import POSTGRES_CONN_STR
 from database.db import Base, engine
 
 config = context.config

@@ -32,6 +32,7 @@ def create_user():
         last_name=request.json.get('last_name'),
         first_name=request.json.get('first_name'),
     )
+
     new_user['roles'] = user_service.get_roles_names_for_user(new_user['id'])
     access_token, refresh_token = create_access_and_refresh_tokens(
         identity=new_user['id'],

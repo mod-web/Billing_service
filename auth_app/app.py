@@ -8,7 +8,7 @@ from opentelemetry.sdk.resources import Resource, SERVICE_NAME
 from api.v1.auth import auth
 from api.v1.roles import roles
 from api.v1.users import users
-from config import POSTGRES_CONN_STR, JWT_SECRET_KEY, JWT_ALGORITHM
+from auth_config import POSTGRES_CONN_STR, JWT_SECRET_KEY, JWT_ALGORITHM
 from flask_swagger_ui import get_swaggerui_blueprint
 
 from services.user import UserService
@@ -24,8 +24,8 @@ app.config['JWT_SECRET_KEY'] = JWT_SECRET_KEY
 app.config['JWT_ALGORITHM'] = JWT_ALGORITHM
 jwt = JWTManager(app)
 
-BASE_SWAGGER_URL = '/apidocs/'
-API_URL = '/swagger/openapi.yaml'
+BASE_SWAGGER_URL = '/auth-api/apidocs'
+API_URL = '/static/swagger.json'
 swagger_blueprint = get_swaggerui_blueprint(BASE_SWAGGER_URL, API_URL)
 
 
@@ -50,7 +50,7 @@ app.register_blueprint(swagger_blueprint)
 app.cli.add_command(create_superuser)
 
 
-@app.route('/')
+@app.route('/auth-api/status')
 def get_status():
     return {'status': 'ok'}
 

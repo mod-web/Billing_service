@@ -60,13 +60,3 @@ class History(Base):
     user_agent = Column(Text, nullable=False)
     auth_date = Column(DateTime, nullable=False)
     user_device_type = Column(Text, primary_key=True)
-
-
-class OauthUsers(Base):
-    __tablename__ = 'oauth_users'
-    __table_args__ = UniqueConstraint('oauth_id', 'oauth_email', name='oauth_unique'),
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
-    user_id = Column(UUID(), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    oauth_id = Column(Text, nullable=False)
-    oauth_email = Column(Text, nullable=False)

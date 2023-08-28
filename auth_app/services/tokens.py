@@ -8,7 +8,7 @@ from flask import jsonify, abort
 from flask_jwt_extended import create_access_token, verify_jwt_in_request, get_jwt
 from flask_jwt_extended import create_refresh_token
 
-from config import redis_config
+from auth_config import redis_config
 
 logger = logging.getLogger(__name__)
 

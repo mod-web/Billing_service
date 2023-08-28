@@ -6,7 +6,7 @@ import redis as redis
 from flask import request, jsonify
 from sqlalchemy.orm import Session
 
-from config import redis_config, RATE_LIMIT_COUNT
+from auth_config import redis_config, RATE_LIMIT_COUNT
 
 redis_conn = redis.Redis(host=redis_config.host, port=redis_config.port, db=0)
 

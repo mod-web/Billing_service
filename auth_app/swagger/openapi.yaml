@@ -1,4 +1,3 @@
-swagger: 3.0
 openapi: 3.0.0
 
 info:
@@ -20,11 +19,11 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/User'
-        responses:
-          '201':
-            description: Пользователь создан
-          '400':
-            description: Регистрация не прошла
+      responses:
+        '201':
+          description: Пользователь создан
+        '400':
+          description: Регистрация не прошла
 
   /api/v1/auth/login:
     post:
@@ -42,11 +41,11 @@ paths:
                   type: string
                 password:
                   type: string
-        responses:
-          '200':
-            description: 'Success login'
-          '401':
-            description: 'Auth failed'
+      responses:
+        '200':
+          description: 'Success login'
+        '401':
+          description: 'Auth failed'
 
 
   /api/v1/auth/logout:
@@ -86,7 +85,7 @@ paths:
           description: 'размер страницы'
           required: false
           schema:
-            type: int
+            type: integer
       responses:
         '200':
           description: 'Список истории получен'
@@ -101,67 +100,67 @@ paths:
       security:
         - AccessToken: [ ]
 
-  /api/v1/users/{user_id}/apply-roles:
-    post:
-      summary: 'Применение роли пользователю'
-      tags:
-        - user api
-      parameters:
-        - name: user_id
-          in: query
-          description: 'ид пользователя'
-          required: true
-          schema:
-            type: int
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                role_name:
-                  type: string
-      responses:
-        '200':
-          description: 'Роль применена'
-        '403':
-          description: 'Нет прав'
-        '404':
-          description: 'Роль или пользователь не найдены'
-      security:
-        - AccessToken: [ ]
+  # /api/v1/users/{user_id}/apply-roles:
+  #   post:
+  #     summary: 'Применение роли пользователю'
+  #     tags:
+  #       - user api
+  #     parameters:
+  #       - name: user_id
+  #         in: query
+  #         description: 'ид пользователя'
+  #         required: true
+  #         schema:
+  #           type: integer
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               role_name:
+  #                 type: string
+  #     responses:
+  #       '200':
+  #         description: 'Роль применена'
+  #       '403':
+  #         description: 'Нет прав'
+  #       '404':
+  #         description: 'Роль или пользователь не найдены'
+  #     security:
+  #       - AccessToken: [ ]
 
-  /api/v1/users/{user_id}/delete-role:
-    post:
-      summary: 'Удаление роли у пользователя'
-      tags:
-        - user api
-      parameters:
-        - name: user_id
-          in: query
-          description: 'ид пользователя'
-          required: true
-          schema:
-            type: int
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                role_name:
-                  type: string
-      responses:
-        '200':
-          description: 'Роль удалена'
-        '403':
-          description: 'Нет прав'
-        '404':
-          description: 'Роль или пользователь не найдены'
-      security:
-        - AccessToken: [ ]
+  # /api/v1/users/{user_id}/delete-role:
+  #   post:
+  #     summary: 'Удаление роли у пользователя'
+  #     tags:
+  #       - user api
+  #     parameters:
+  #       - name: user_id
+  #         in: query
+  #         description: 'ид пользователя'
+  #         required: true
+  #         schema:
+  #           type: integer
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               role_name:
+  #                 type: string
+  #     responses:
+  #       '200':
+  #         description: 'Роль удалена'
+  #       '403':
+  #         description: 'Нет прав'
+  #       '404':
+  #         description: 'Роль или пользователь не найдены'
+  #     security:
+  #       - AccessToken: [ ]
 
   /api/v1/roles/create:
     post:
@@ -182,7 +181,7 @@ paths:
         '403':
           description: 'Нет прав'
       security:
-        - jwtAuthAccess: [ ]
+        - AccessToken: [ ]
 
   /api/v1/roles:
     get:
@@ -201,39 +200,39 @@ paths:
         '403':
           description: 'Нет прав'
       security:
-        - jwtAuthAccess: [ ]
+        - AccessToken: [ ]
 
-  /api/v1/roles/{role_id}:
-    patch:
-      summary: Редактирование роли
-      tags:
-        - role api
-      parameters:
-        - name: user_id
-          in: query
-          description: 'ид пользователя'
-          required: true
-          schema:
-            type: int
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                role:
-                  type: string
-      responses:
-        '200':
-          description: 'Роль отредактирована'
-        '404':
-          description: 'Роль не найдена'
-        '403':
-          description: 'Роль с таким названием уже есть'
-      security:
-        - jwtAuthAccess: [ ]
+  # /api/v1/roles/{role_id}:
+  #   patch:
+  #     summary: Редактирование роли
+  #     tags:
+  #       - role api
+  #     parameters:
+  #       - name: user_id
+  #         in: query
+  #         description: 'ид пользователя'
+  #         required: true
+  #         schema:
+  #           type: integer
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               role:
+  #                 type: string
+  #     responses:
+  #       '200':
+  #         description: 'Роль отредактирована'
+  #       '404':
+  #         description: 'Роль не найдена'
+  #       '403':
+  #         description: 'Роль с таким названием уже есть'
+  #     security:
+  #       - AccessToken: [ ]
 
-    delete:
+    post:
       summary: удалить роль
       responses:
         '200':
@@ -251,7 +250,7 @@ paths:
                 role:
                   type: string
       security:
-        - jwtAuthAccess: [ ]
+        - AccessToken: [ ]
 
 
 components:
