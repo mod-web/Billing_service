@@ -48,6 +48,7 @@ async def change_subscription(
     session = Depends(get_session),
     producer = Depends(get_kafka)
 ) -> dict:
+    print('goooooooooooooooooooooooooooooooooooooooooooooooooo')
     try:
         query = await update_without_renew()
         stmt = text(query)

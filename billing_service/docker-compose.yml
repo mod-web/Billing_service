@@ -112,5 +112,17 @@ services:
     depends_on:
       - init-kafka
 
+  worker:
+    build: ./billing_api
+    command: celery -A worker.celery worker -B --loglevel=info
+    volumes:
+      - ./billing_api:/app
+    depends_on:
+      - billing_api
+      - redis
+
+  redis:
+    image: redis:7
+
 volumes:
   postgres_data:
