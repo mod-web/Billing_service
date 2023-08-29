@@ -104,7 +104,6 @@ services:
     depends_on:
       - init-kafka
 
-<<<<<<< HEAD:docker-compose.yml
   auth_service:
     build:
       context: ./auth_service
