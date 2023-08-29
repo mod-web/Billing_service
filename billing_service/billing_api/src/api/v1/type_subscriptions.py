@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 from sqlalchemy.sql import text
 from fastapi import APIRouter, Depends
@@ -23,7 +24,7 @@ async def get_type_subscriptions(
         await session.commit()
         return [i._asdict() for i in res.fetchall()]
     except Exception as e:
-        print(str(e))
+        logging.warning(f'Error: {str(e)}')
 
 
 @router.post(
@@ -43,7 +44,7 @@ async def add_type_subscription(
         await session.commit()
         return str(res.inserted_primary_key[0])
     except Exception as e:
-        print(str(e))
+        logging.warning(f'Error: {str(e)}')
 
 
 @router.delete(
@@ -61,4 +62,4 @@ async def delete_type_subscription(
         await session.commit()
         return 'deleted'
     except Exception as e:
-        print(str(e))
+        logging.warning(f'Error: {str(e)}')

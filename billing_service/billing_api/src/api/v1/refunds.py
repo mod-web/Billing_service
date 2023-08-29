@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 from dateutil.relativedelta import *
 
@@ -87,4 +88,4 @@ async def create_refund(
                 'refund_amount': return_price}
 
     except Exception as e:
-        print(str(e))
+        logging.warning(f'Error: {str(e)}')

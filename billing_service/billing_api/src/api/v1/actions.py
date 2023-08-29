@@ -1,5 +1,5 @@
 import json
-
+import logging
 import aiohttp as aiohttp
 from fastapi import APIRouter, Depends
 from sqlalchemy.sql import text
@@ -48,7 +48,7 @@ async def change_subscription(
     session = Depends(get_session),
     producer = Depends(get_kafka)
 ) -> dict:
-    print('goooooooooooooooooooooooooooooooooooooooooooooooooo')
+
     try:
         query = await update_without_renew()
         stmt = text(query)
@@ -57,7 +57,7 @@ async def change_subscription(
         data_subscribe = res.fetchall()
         changed = [] if data_subscribe is None else [i[0] for i in data_subscribe]
     except Exception as e:
-        print(str(e))
+        logging.warning(f'Error: {str(e)}')
 
     try:
         query = await get_renew_subscriptions()
@@ -69,13 +69,13 @@ async def change_subscription(
         prolonging_subscriptions = [] if data_subscribe is None else \
                                    [i._asdict() for i in data_subscribe]
     except Exception as e:
-        print(str(e))
+        logging.warning(f'Error: {str(e)}')
 
     def acked(err, msg):
         if err is not None:
-            print("Failed to deliver message: %s: %s" % (str(msg), str(err)))
+            logging.warning(f'Failed to deliver message: {str(msg)}: {str(err)}')
         else:
-            print("Message produced: %s" % (str(msg)))
+            logging.info(f'Message produced: {str(msg)}')
 
     for i in prolonging_subscriptions:
         dict_res = {

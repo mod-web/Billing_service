@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from fastapi import APIRouter, Depends
@@ -25,7 +26,7 @@ async def get_orders(
         await session.commit()
         return [i._asdict() for i in res.fetchall()]
     except Exception as e:
-        print(str(e))
+        logging.warning(f'Error: {str(e)}')
 
 
 @router.post(
@@ -38,8 +39,6 @@ async def new_order(
     type_subscribe_id: str,
     session = Depends(get_session),
 ) -> str:
-    # statement = text(f"""INSERT INTO public.orders (id, user_id, status) VALUES ('{order_id}', '{user_id}', 'panding')""")
-
     try:
         res = await session.execute(orders.insert().values(user_id=user_id, status='created'))
         await session.commit()
@@ -56,7 +55,7 @@ async def new_order(
 
         return str(res.inserted_primary_key[0])
     except Exception as e:
-        print(str(e))
+        logging.warning(f'Error: {str(e)}')
 
 
 @router.put(
@@ -70,7 +69,6 @@ async def change_status(
     renew: bool,
     session = Depends(get_session),
 ) -> str:
-
     try:
         order_res = await session.execute(orders.update()
                                                .where(orders.c.payment_id == payment_id)
@@ -94,10 +92,7 @@ async def change_status(
         else:
             return f'order status canceled: {order_id}'
     except Exception as e:
-        print(str(e))
-
-
-
+        logging.warning(f'Error: {str(e)}')
 
 
 @router.delete(
@@ -115,4 +110,4 @@ async def delete_order(
         await session.commit()
         return 'deleted'
     except Exception as e:
-        print(str(e))
+        logging.warning(f'Error: {str(e)}')

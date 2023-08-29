@@ -1,17 +1,22 @@
 import json
+import logging
 from argparse import ArgumentParser
 import time
-
 from confluent_kafka import Consumer, Producer, OFFSET_BEGINNING
 from yookassa import Configuration, Payment
 import socket
 
 
+
+logging.basicConfig(level=logging.INFO)
+
+
+
 def acked(err, msg):
     if err is not None:
-        print("Failed to deliver message: %s: %s" % (str(msg), str(err)))
+        logging.warning(f'Failed to deliver message: {str(msg)}: {str(err)}')
     else:
-        print("Message produced: %s" % (str(msg)))
+        logging.info(f'Message produced: {str(msg)}')
 
 
 def check_payment(message):
@@ -39,7 +44,7 @@ def check_payment(message):
 
         producer.produce('ready-topic', key=message.key(), value=res, callback=acked)
         producer.poll(1)
-        print(f'Payment: {payment_id} - {payment.status}! -> ready-topic')
+        logging.info(f'Payment: {payment_id} - {payment.status}! -> ready-topic')
 
 
 if __name__ == '__main__':
@@ -58,8 +63,7 @@ if __name__ == '__main__':
             for p in partitions:
                 p.offset = OFFSET_BEGINNING
             cons.assign(partitions)
-        print('Reset complete')
-
+        logging.info('Reset complete')
 
     topic = "yookassa-log"
     consumer.subscribe([topic], on_assign=reset_offset)
@@ -70,7 +74,7 @@ if __name__ == '__main__':
             if msg is None:
                 pass
             elif msg.error():
-                print("ERROR: %s".format(msg.error()))
+                logging.warning("ERROR: %s".format(msg.error()))
             else:
                 check_payment(msg)
 

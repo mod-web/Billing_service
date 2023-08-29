@@ -1,4 +1,5 @@
 import json
+import logging
 
 from yookassa import Configuration, Payment
 from fastapi import APIRouter, Depends
@@ -33,7 +34,7 @@ async def start_payment(
         await session.commit()
         data_subscribe = res.fetchone()
     except Exception as e:
-        print(str(e))
+        logging.warning(f'Error: {str(e)}')
 
     payment = Payment.create({
         "amount": {
@@ -63,13 +64,13 @@ async def start_payment(
         await session.execute(statement)
         await session.commit()
     except Exception as e:
-        print(str(e))
+        logging.warning(f'Error: {str(e)}')
 
     def acked(err, msg):
         if err is not None:
-            print("Failed to deliver message: %s: %s" % (str(msg), str(err)))
+            logging.warning(f'Failed to deliver message: {str(msg)}: {str(err)}')
         else:
-            print("Message produced: %s" % (str(msg)))
+            logging.info(f'Message produced: {str(msg)}')
 
     producer.produce('yookassa-log', key=str(payment.id), value=json.dumps(data_transaction), callback=acked)
 

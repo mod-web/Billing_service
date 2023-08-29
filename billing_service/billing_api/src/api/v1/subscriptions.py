@@ -1,5 +1,5 @@
+import logging
 from datetime import datetime
-from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlalchemy.sql import text
 
@@ -24,7 +24,7 @@ async def get_subscriptions(
         await session.commit()
         return [i._asdict() for i in res.fetchall()]
     except Exception as e:
-        print(str(e))
+        logging.warning(f'Error: {str(e)}')
 
 
 @router.post(
@@ -46,7 +46,7 @@ async def add_subscription(
         await session.commit()
         return str(res.inserted_primary_key[0])
     except Exception as e:
-        print(str(e))
+        logging.warning(f'Error: {str(e)}')
 
 
 @router.put(
@@ -70,7 +70,7 @@ async def update_subscription(
             await session.commit()
             return subscribe_id
         except Exception as e:
-            print(str(e))
+            logging.warning(f'Error: {str(e)}')
 
     elif action == 'prolong':
         try:
@@ -84,7 +84,7 @@ async def update_subscription(
             await session.commit()
             return subscribe_id
         except Exception as e:
-            print(str(e))
+            logging.warning(f'Error: {str(e)}')
 
 
 @router.delete(
@@ -102,4 +102,4 @@ async def delete_subscription(
         await session.commit()
         return 'deleted'
     except Exception as e:
-        print(str(e))
+        logging.warning(f'Error: {str(e)}')
