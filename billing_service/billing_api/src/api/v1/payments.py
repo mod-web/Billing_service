@@ -1,12 +1,12 @@
 import json
 import logging
-
-from yookassa import Configuration, Payment
 from fastapi import APIRouter, Depends
 from sqlalchemy.sql import text
 
 from src.db.base import get_session
 from src.services.kafka import get_kafka
+from src.modules.provider.yookassa import Yookassa
+from config import settings
 
 
 router = APIRouter()
@@ -21,10 +21,7 @@ async def start_payment(
         order_id: str,
         session = Depends(get_session),
         producer = Depends(get_kafka)
-):
-    Configuration.account_id = 243091
-    Configuration.secret_key = 'test_3SWAMPhw_Q1RcbAjaGY_GQpts4CSQ5D6Txv7ivHpwMg'
-
+) -> str:
     try:
         stmt = text(f"""SELECT public.type_subscribes.name, public.type_subscribes.price FROM public.orders
                         JOIN public.user_subscribes ON public.orders.id = public.user_subscribes.order_id
@@ -36,25 +33,13 @@ async def start_payment(
     except Exception as e:
         logging.warning(f'Error: {str(e)}')
 
-    payment = Payment.create({
-        "amount": {
-            "value": f"{data_subscribe[1]}",
-            "currency": "RUB"
-        },
-        "confirmation": {
-            "type": "redirect",
-            "return_url": "https://www.example.com/return_url"
-        },
-        "capture": True,
-        "description": f'Order "{data_subscribe[0]} - {int(data_subscribe[1])} RUB"'
-    }, order_id)
-
+    provider = Yookassa(settings.yookassa.account_id, settings.yookassa.secret_key)
+    payment = provider.create_payment(order_id, data_subscribe[0], data_subscribe[1])
     confirmation_url = payment.confirmation.confirmation_url
 
     data_transaction = {'payment_id': payment.id,
                         'status': payment.status,
                         'created_at': payment.created_at}
-
 
     statement = text(f"""UPDATE public.orders
                          SET payment_id='{payment.id}', status='pending'

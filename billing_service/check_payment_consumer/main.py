@@ -3,13 +3,13 @@ import logging
 from argparse import ArgumentParser
 import time
 from confluent_kafka import Consumer, Producer, OFFSET_BEGINNING
-from yookassa import Configuration, Payment
 import socket
 
+from provider.yookassa import Yookassa
+from config import cfg
 
 
 logging.basicConfig(level=logging.INFO)
-
 
 
 def acked(err, msg):
@@ -20,13 +20,11 @@ def acked(err, msg):
 
 
 def check_payment(message):
-    Configuration.account_id = 243091
-    Configuration.secret_key = 'test_3SWAMPhw_Q1RcbAjaGY_GQpts4CSQ5D6Txv7ivHpwMg'
-
     payment_id = message.key().decode('utf-8')
-    payment = Payment.find_one(payment_id)
+    provider = Yookassa(cfg.yookassa.account_id, cfg.yookassa.secret_key)
+    payment = provider.check_payment(payment_id)
 
-    config = {'bootstrap.servers': "kafka:29092",
+    config = {'bootstrap.servers': f'{cfg.kafka.host}:{cfg.kafka.port}',
               'client.id': socket.gethostname()}
     producer = Producer(config)
 

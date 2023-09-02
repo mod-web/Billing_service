@@ -18,6 +18,6 @@ build_d:
 fill:
 	echo "Waiting for init..."
 	sleep 5
-	docker-compose exec billing_postgres psql -h 127.0.0.1 -U $(POSTGRES_USER) -d $(POSTGRES_DB) -f /fill.sql
+	docker-compose exec billing_postgres psql -h 127.0.0.1 -U $(DB__USER) -d $(DB__NAME) -f /fill.sql
 	echo "Insert type_subscribes completed!"
 

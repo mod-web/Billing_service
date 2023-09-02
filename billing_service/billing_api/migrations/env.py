@@ -6,14 +6,15 @@ from alembic import context
 from config import settings
 from src.models.models import metadata
 
+
 config = context.config
 
 section = config.config_ini_section
-config.set_section_option(section, 'DB_HOST', settings.DB_HOST)
-config.set_section_option(section, 'DB_PORT', settings.DB_PORT)
-config.set_section_option(section, 'DB_USER', settings.DB_USER)
-config.set_section_option(section, 'DB_NAME', settings.DB_NAME)
-config.set_section_option(section, 'DB_PASS', settings.DB_PASS)
+config.set_section_option(section, 'DB_HOST', settings.db.host)
+config.set_section_option(section, 'DB_PORT', settings.db.port)
+config.set_section_option(section, 'DB_USER', settings.db.user)
+config.set_section_option(section, 'DB_NAME', settings.db.name)
+config.set_section_option(section, 'DB_PASS', settings.db.password)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

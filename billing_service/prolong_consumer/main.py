@@ -1,9 +1,11 @@
 import json
 import logging
 from argparse import ArgumentParser
-from confluent_kafka import Consumer, Producer, OFFSET_BEGINNING
-from yookassa import Configuration, Payment
+from confluent_kafka import Consumer, OFFSET_BEGINNING
 import requests
+
+from provider.yookassa import Yookassa
+from config import cfg
 
 
 logging.basicConfig(level=logging.INFO)
@@ -13,7 +15,7 @@ def update_subscription_status(subscribe_id, action):
     params = {
         'action': action
     }
-    url = f'http://billing_api:8001/api/v1/subscriptions/{subscribe_id}'
+    url = f'http://{cfg.billing.host}:{cfg.billing.port}/api/v1/subscriptions/{subscribe_id}'
     with requests.Session() as session:
         with session.put(url=url, params=params) as response:
             if response.status_code == 200:
@@ -32,20 +34,10 @@ def prolong(message):
     subscribe_id = message.key().decode('utf-8')
     payment_data = json.loads(message.value().decode('utf-8'))
 
-    Configuration.account_id = 243091
-    Configuration.secret_key = 'test_3SWAMPhw_Q1RcbAjaGY_GQpts4CSQ5D6Txv7ivHpwMg'
-
     logging.info(f"try prolong {payment_data['payment_id']}")
 
-    payment = Payment.create({
-        "amount": {
-            "value": f"{payment_data['price']}.00",
-            "currency": "RUB"
-        },
-        "capture": True,
-        "payment_method_id": payment_data['payment_id'],
-        "description": "Renew order"
-    })
+    provider = Yookassa(cfg.yookassa.account_id, cfg.yookassa.secret_key)
+    payment = provider.prolong_payment(payment_data['payment_id'], payment_data['price'])
 
     if payment.status == 'succeeded':
         update_subscription_status(subscribe_id, 'prolong')

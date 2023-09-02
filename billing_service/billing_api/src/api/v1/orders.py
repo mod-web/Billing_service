@@ -1,12 +1,12 @@
 import logging
 from datetime import datetime
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.sql import text
 import aiohttp as aiohttp
 
 from src.models.models import orders, user_subscribes
 from src.db.base import get_session
+from config import settings
 
 
 router = APIRouter()
@@ -46,7 +46,7 @@ async def new_order(
         params = {'user_id': user_id,
                   'type_subscribe_id': type_subscribe_id,
                   'order_id': str(res.inserted_primary_key[0])}
-        url = f'http://billing_api:8001/api/v1/subscriptions/'
+        url = f'http://{settings.billing.host}:{settings.billing.port}/api/v1/subscriptions/'
 
         async with aiohttp.ClientSession() as s:
             async with s.post(url=url, params=params) as response:
@@ -103,7 +103,7 @@ async def change_status(
 async def delete_order(
     order_id: str,
     session = Depends(get_session),
-):
+) -> str:
     try:
         await session.execute(
             orders.delete().where(orders.c.id == order_id))

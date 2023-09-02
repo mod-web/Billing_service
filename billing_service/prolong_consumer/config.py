@@ -2,9 +2,9 @@ from pydantic_settings import BaseSettings
 from pydantic import Field
 
 
-class Kafka(BaseSettings):
+class Billing(BaseSettings):
     host: str = Field('localhost')
-    port: int = Field(29092)
+    port: int = Field(8001)
 
 
 class Yoo_kassa(BaseSettings):
@@ -13,7 +13,7 @@ class Yoo_kassa(BaseSettings):
 
 
 class BaseConfig(BaseSettings):
-    kafka: Kafka = Kafka()
+    billing: Billing = Billing()
     yookassa: Yoo_kassa = Yoo_kassa()
 
     class Config:

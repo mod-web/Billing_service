@@ -37,7 +37,7 @@ async def add_type_subscription(
     price: str,
     period: str,
     session = Depends(get_session),
-):
+) -> str:
     try:
         res = await session.execute(type_subscribes.insert()
                               .values(name=name, price=Decimal(price), period=period))
@@ -55,7 +55,7 @@ async def add_type_subscription(
 async def delete_type_subscription(
     type_subscription_id: str,
     session = Depends(get_session),
-):
+) -> str:
     try:
         await session.execute(
             type_subscribes.delete().where(type_subscribes.c.id == type_subscription_id))

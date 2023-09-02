@@ -1,12 +1,13 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from dateutil.relativedelta import *
 
 from fastapi import APIRouter, Depends
-from yookassa import Configuration, Refund
 from sqlalchemy.sql import text
 from src.db.base import get_session
 from src.models.models import user_subscribes
+from src.modules.provider.yookassa import Yookassa
+from config import settings
 
 
 router = APIRouter()
@@ -21,9 +22,6 @@ async def create_refund(
     subscription_id: str,
     session = Depends(get_session)
 ) -> dict:
-    Configuration.account_id = 243091
-    Configuration.secret_key = 'test_3SWAMPhw_Q1RcbAjaGY_GQpts4CSQ5D6Txv7ivHpwMg'
-
     try:
         stmt = text(f"""SELECT period, price, start_active_at, payment_id 
                         FROM public.user_subscribes
@@ -67,13 +65,8 @@ async def create_refund(
         price_per_day = int(price) / int(all_day.days)
         return_price = round(int(day_not_spend.days) * price_per_day)
 
-        Refund.create({
-            "amount": {
-                "value": f"{return_price}.00",
-                "currency": "RUB"
-            },
-            "payment_id": f"{payment_id}"
-        })
+        provider = Yookassa(settings.yookassa.account_id, settings.yookassa.secret_key)
+        payment = provider.refund_payment(payment_id, return_price)
 
         subscribes_res = await session.execute(user_subscribes.update()
                                           .where(user_subscribes.c.id == subscription_id)

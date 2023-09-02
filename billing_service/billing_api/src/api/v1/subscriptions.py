@@ -58,7 +58,7 @@ async def update_subscription(
     action: str,
     subscription_id: str,
     session = Depends(get_session),
-):
+) -> str:
     if action == 'cancel':
         try:
             subscribe_res = await session.execute(user_subscribes.update()
