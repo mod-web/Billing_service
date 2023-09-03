@@ -10,7 +10,9 @@ services:
     env_file:
       - .env
     ports:
-      - "5432:5432"
+      - "5433:5433"
+    networks:
+      - billing_service_graduate-work
 
   nginx:
     restart: on-failure
@@ -24,6 +26,8 @@ services:
       - auth_postgres
       - auth_service
       - redis
+    networks:
+      - billing_service_graduate-work
 
   auth_service:
     build:
@@ -33,6 +37,8 @@ services:
       - .env
     volumes:
       - .:/app
+    networks:
+      - billing_service_graduate-work
 
   redis:
     image: redis:7.0.8
@@ -45,7 +51,12 @@ services:
       interval: 1s
       timeout: 3s
       retries: 30
+    networks:
+      - billing_service_graduate-work
 
+networks:
+  billing_service_graduate-work:
+    external: true
 
 volumes:
-  postgres_data:
+  auth_data:

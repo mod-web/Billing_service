@@ -10,6 +10,8 @@ services:
       - ./billing_api:/app
     depends_on:
       - billing_postgres
+    networks:
+      - graduate-work
 
   billing_postgres:
     restart: on-failure
@@ -26,6 +28,8 @@ services:
       - ./.env
     ports:
       - "5432:5432"
+    networks:
+      - graduate-work
 
   nginx:
     restart: on-failure
@@ -37,11 +41,15 @@ services:
       - "80:80"
     depends_on:
       - billing_api
+    networks:
+      - graduate-work
 
   zookeeper:
     image: confluentinc/cp-zookeeper:6.1.1
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - graduate-work
 
   kafka:
     image: confluentinc/cp-kafka:6.1.1
@@ -58,6 +66,8 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: '1'
       KAFKA_MIN_INSYNC_REPLICAS: '1'
+    networks:
+      - graduate-work
 
 # Для визуального отображения
 #  control-center:
@@ -94,6 +104,8 @@ services:
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:29092 --list
       "
+    networks:
+      - graduate-work
 
   check_payment_consumer:
     build: ./check_payment_consumer
@@ -102,6 +114,8 @@ services:
       - ./.env
     depends_on:
       - init-kafka
+    networks:
+      - graduate-work
 
   status_payment_consumer:
     build: ./status_payment_consumer
@@ -110,6 +124,8 @@ services:
       - ./.env
     depends_on:
       - init-kafka
+    networks:
+      - graduate-work
 
   prolong_consumer:
     build: ./prolong_consumer
@@ -118,6 +134,8 @@ services:
       - ./.env
     depends_on:
       - init-kafka
+    networks:
+      - graduate-work
 
   worker:
     build: ./billing_api
@@ -127,9 +145,17 @@ services:
     depends_on:
       - billing_api
       - redis
+    networks:
+      - graduate-work
 
   redis:
     image: redis:7
+    networks:
+      - graduate-work
+
+networks:
+  graduate-work:
+    driver: bridge
 
 volumes:
   postgres_data:
