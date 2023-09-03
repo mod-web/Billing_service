@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.sql import text
 
 from src.models.models import user_subscribes
@@ -22,9 +22,13 @@ async def get_subscriptions(
         stmt = text("""SELECT * FROM public.user_subscribes""")
         res = await session.execute(stmt)
         await session.commit()
-        return [i._asdict() for i in res.fetchall()]
     except Exception as e:
         logging.warning(f'Error: {str(e)}')
+    finally:
+        subscriptions = [i._asdict() for i in res.fetchall()]
+        if not subscriptions:
+            raise HTTPException(status_code=404, detail="subscriptions not found")
+        return subscriptions
 
 
 @router.post(
@@ -100,6 +104,7 @@ async def delete_subscription(
         await session.execute(
             user_subscribes.delete().where(user_subscribes.c.id == subscription_id))
         await session.commit()
-        return 'deleted'
+        return {'detail': 'deleted'}
     except Exception as e:
         logging.warning(f'Error: {str(e)}')
+        raise HTTPException(status_code=404, detail="subscription not found")

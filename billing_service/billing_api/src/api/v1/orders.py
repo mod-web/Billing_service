@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.sql import text
 import aiohttp as aiohttp
 
@@ -24,9 +24,13 @@ async def get_orders(
         stmt = text("""SELECT * FROM public.orders""")
         res = await session.execute(stmt)
         await session.commit()
-        return [i._asdict() for i in res.fetchall()]
     except Exception as e:
         logging.warning(f'Error: {str(e)}')
+    finally:
+        orders = [i._asdict() for i in res.fetchall()]
+        if not orders:
+            raise HTTPException(status_code=404, detail="orders not found")
+        return orders
 
 
 @router.post(
@@ -108,6 +112,7 @@ async def delete_order(
         await session.execute(
             orders.delete().where(orders.c.id == order_id))
         await session.commit()
-        return 'deleted'
+        return {'detail': 'deleted'}
     except Exception as e:
         logging.warning(f'Error: {str(e)}')
+        raise HTTPException(status_code=404, detail="order not found")

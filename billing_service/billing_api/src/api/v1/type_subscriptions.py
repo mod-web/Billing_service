@@ -1,7 +1,7 @@
 import logging
 from decimal import Decimal
 from sqlalchemy.sql import text
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from src.db.base import get_session
 from src.models.models import type_subscribes
@@ -22,9 +22,13 @@ async def get_type_subscriptions(
         stmt = text("""SELECT * FROM public.type_subscribes""")
         res = await session.execute(stmt)
         await session.commit()
-        return [i._asdict() for i in res.fetchall()]
     except Exception as e:
         logging.warning(f'Error: {str(e)}')
+    finally:
+        types = [i._asdict() for i in res.fetchall()]
+        if not types:
+            raise HTTPException(status_code=404, detail="types not found")
+        return types
 
 
 @router.post(
@@ -60,6 +64,7 @@ async def delete_type_subscription(
         await session.execute(
             type_subscribes.delete().where(type_subscribes.c.id == type_subscription_id))
         await session.commit()
-        return 'deleted'
+        return {'detail': 'deleted'}
     except Exception as e:
         logging.warning(f'Error: {str(e)}')
+        raise HTTPException(status_code=404, detail="type not found")
