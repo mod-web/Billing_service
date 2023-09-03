@@ -5,7 +5,7 @@ services:
     restart: always
     build: ./billing_api
     env_file:
-      - ./billing_api/.env
+      - ./.env
     volumes:
       - ./billing_api:/app
     depends_on:
@@ -17,6 +17,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init_db/fill.sql:/fill.sql
+    environment:
+      POSTGRES_DB: ${DB__NAME}
+      POSTGRES_USER: ${DB__USER}
+      POSTGRES_PASSWORD: ${DB__PASSWORD}
+      POSTGRES_PORT: ${DB__PORT}
     env_file:
       - ./.env
     ports:
@@ -42,6 +47,8 @@ services:
     image: confluentinc/cp-kafka:6.1.1
     depends_on:
       - zookeeper
+#    ports:
+#      - "29092:29092"
     expose:
       - '29092'
     environment:
@@ -52,6 +59,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: '1'
       KAFKA_MIN_INSYNC_REPLICAS: '1'
 
+# Для визуального отображения
 #  control-center:
 #    image: confluentinc/cp-enterprise-control-center:7.4.1
 #    hostname: control-center
@@ -87,7 +95,6 @@ services:
       kafka-topics --bootstrap-server kafka:29092 --list
       "
 
-
   check_payment_consumer:
     build: ./check_payment_consumer
     restart: on-failure
@@ -104,27 +111,6 @@ services:
     depends_on:
       - init-kafka
 
-  auth_service:
-    build:
-      context: ./auth_service
-      dockerfile: ./Dockerfile
-    env_file:
-      - auth_service/.env
-    volumes:
-      - ./auth_service:/app
-
-  redis:
-    image: redis:7.0.8
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-    volumes:
-      - ../redis_data:/data
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 1s
-      timeout: 3s
-      retries: 30
-
   prolong_consumer:
     build: ./prolong_consumer
     restart: on-failure
@@ -133,6 +119,17 @@ services:
     depends_on:
       - init-kafka
 
+  worker:
+    build: ./billing_api
+    command: celery -A worker.celery worker -B --loglevel=info
+    volumes:
+      - ./billing_api:/app
+    depends_on:
+      - billing_api
+      - redis
+
+  redis:
+    image: redis:7
 
 volumes:
   postgres_data:

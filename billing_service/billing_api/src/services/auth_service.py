@@ -1,5 +1,4 @@
 from typing import Dict, Any
-
 import aiohttp as aiohttp
 
 from config import settings

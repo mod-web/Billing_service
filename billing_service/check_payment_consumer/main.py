@@ -1,27 +1,30 @@
 import json
+import logging
 from argparse import ArgumentParser
 import time
-
 from confluent_kafka import Consumer, Producer, OFFSET_BEGINNING
-from yookassa import Configuration, Payment
 import socket
+
+from provider.yookassa import Yookassa
+from config import cfg
+
+
+logging.basicConfig(level=logging.INFO)
 
 
 def acked(err, msg):
     if err is not None:
-        print("Failed to deliver message: %s: %s" % (str(msg), str(err)))
+        logging.warning(f'Failed to deliver message: {str(msg)}: {str(err)}')
     else:
-        print("Message produced: %s" % (str(msg)))
+        logging.info(f'Message produced: {str(msg)}')
 
 
 def check_payment(message):
-    Configuration.account_id = 243091
-    Configuration.secret_key = 'test_3SWAMPhw_Q1RcbAjaGY_GQpts4CSQ5D6Txv7ivHpwMg'
-
     payment_id = message.key().decode('utf-8')
-    payment = Payment.find_one(payment_id)
+    provider = Yookassa(cfg.yookassa.account_id, cfg.yookassa.secret_key)
+    payment = provider.check_payment(payment_id)
 
-    config = {'bootstrap.servers': "kafka:29092",
+    config = {'bootstrap.servers': f'{cfg.kafka.host}:{cfg.kafka.port}',
               'client.id': socket.gethostname()}
     producer = Producer(config)
 
@@ -39,7 +42,7 @@ def check_payment(message):
 
         producer.produce('ready-topic', key=message.key(), value=res, callback=acked)
         producer.poll(1)
-        print(f'Payment: {payment_id} - {payment.status}! -> ready-topic')
+        logging.info(f'Payment: {payment_id} - {payment.status}! -> ready-topic')
 
 
 if __name__ == '__main__':
@@ -58,8 +61,7 @@ if __name__ == '__main__':
             for p in partitions:
                 p.offset = OFFSET_BEGINNING
             cons.assign(partitions)
-        print('Reset complete')
-
+        logging.info('Reset complete')
 
     topic = "yookassa-log"
     consumer.subscribe([topic], on_assign=reset_offset)
@@ -70,7 +72,7 @@ if __name__ == '__main__':
             if msg is None:
                 pass
             elif msg.error():
-                print("ERROR: %s".format(msg.error()))
+                logging.warning("ERROR: %s".format(msg.error()))
             else:
                 check_payment(msg)
 

@@ -1,5 +1,5 @@
 import json
-
+import logging
 import aiohttp as aiohttp
 from fastapi import APIRouter, Depends
 from sqlalchemy.sql import text
@@ -7,6 +7,7 @@ from sqlalchemy.sql import text
 from src.db.base import get_session
 from src.modules.query import update_without_renew, get_renew_subscriptions
 from src.services.kafka import get_kafka
+from config import settings
 
 
 router = APIRouter()
@@ -23,14 +24,14 @@ async def buy_subscription(
 ) -> str:
     order_params = {'user_id': user_id,
                     'type_subscribe_id': type_subscription_id}
-    order_url = f'http://billing_api:8001/api/v1/orders/'
+    order_url = f'http://{settings.billing.host}:{settings.billing.port}/api/v1/orders/'
     async with aiohttp.ClientSession() as s:
         async with s.post(url=order_url, params=order_params) as response:
             if response.status == 200:
                 order_id = await response.json()
 
     payment_params = {'order_id': order_id}
-    payment_url = f'http://billing_api:8001/api/v1/payments/'
+    payment_url = f'http://{settings.billing.host}:{settings.billing.port}/api/v1/payments/'
     async with aiohttp.ClientSession() as s:
         async with s.post(url=payment_url, params=payment_params) as response:
             if response.status == 200:
@@ -48,6 +49,7 @@ async def change_subscription(
     session = Depends(get_session),
     producer = Depends(get_kafka)
 ) -> dict:
+
     try:
         query = await update_without_renew()
         stmt = text(query)
@@ -56,7 +58,7 @@ async def change_subscription(
         data_subscribe = res.fetchall()
         changed = [] if data_subscribe is None else [i[0] for i in data_subscribe]
     except Exception as e:
-        print(str(e))
+        logging.warning(f'Error: {str(e)}')
 
     try:
         query = await get_renew_subscriptions()
@@ -68,13 +70,13 @@ async def change_subscription(
         prolonging_subscriptions = [] if data_subscribe is None else \
                                    [i._asdict() for i in data_subscribe]
     except Exception as e:
-        print(str(e))
+        logging.warning(f'Error: {str(e)}')
 
     def acked(err, msg):
         if err is not None:
-            print("Failed to deliver message: %s: %s" % (str(msg), str(err)))
+            logging.warning(f'Failed to deliver message: {str(msg)}: {str(err)}')
         else:
-            print("Message produced: %s" % (str(msg)))
+            logging.info(f'Message produced: {str(msg)}')
 
     for i in prolonging_subscriptions:
         dict_res = {

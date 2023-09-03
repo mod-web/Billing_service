@@ -1,0 +1,117 @@
+version: '3.10'
+
+services:
+  fastapi_service:
+    build: ./fastapi_service
+    env_file:
+      - ./fastapi_service/.env
+    volumes:
+      - ./fastapi_service:/app
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - ./.env
+    environment:
+      POSTGRES_DB: "${DB_NAME}"
+      POSTGRES_USER: "${DB_USER}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf:/etc/nginx/conf.d:ro
+      - static_data:/static:ro
+    ports:
+      - "80:80"
+
+  redis:
+    image: redis:latest
+    container_name: ${REDIS_HOST}
+
+  scheduler:
+    restart: always
+    volumes:
+      - static_data:/opt/app/static
+    build:
+      context: ./scheduler
+    env_file:
+      - ./.env
+    depends_on:
+      - postgres
+
+  worker:
+    restart: always
+    build:
+      context: ./scheduler
+    command: ['celery', '-A', 'config', 'worker']
+    env_file:
+      - .env
+    expose:
+      - ${CELERY_WORKER_PORT}
+    depends_on:
+      - scheduler
+
+  celery-beats:
+    restart: always
+    env_file:
+      - .env
+    build:
+      context: ./scheduler
+    command: ['celery', '-A', 'config', 'beat', '-l', 'INFO']
+    expose:
+      - ${CELERY_BEAT_PORT}
+    depends_on:
+      - scheduler
+      - worker
+
+  rabbitmq:
+    image: rabbitmq:3.11.13-management
+    hostname: rabbitmq
+    restart: always
+    ports:
+      - "15672:15672"
+    env_file:
+      - ./.env
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  worker_instant:
+    build: ./worker_instant
+    restart: always
+    env_file:
+      - ./.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  worker_delayed:
+    build: ./worker_delayed
+    restart: always
+    env_file:
+      - ./.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  sender_queue:
+    build: ./sender_queue
+    restart: on-failure
+    env_file:
+      - ./.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  static_data:
