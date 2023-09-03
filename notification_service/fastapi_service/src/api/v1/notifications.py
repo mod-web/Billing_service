@@ -37,3 +37,32 @@ async def publish_notification(
             'data': users
         }
         await broker.publish_to_broker(routing_key='delayed', msg=json.dumps(body))
+
+
+@router.post(
+    '/instant',
+    description='Publish instant notification to broker',
+    summary='Publish instant notification to broker',
+)
+async def publish_instant_notification(
+    uuid: str,
+    template: str,
+    type_: str,
+    title: str,
+    broker: RabbitmqBroker = Depends(get_broker)
+):
+    users_data = [{
+        'email': 'module-web@yandex.ru',
+        'user_name': 'Andrey',
+        'link': 'https://domen.com/1',
+        'number_likes': 5,
+        'text': 'This is promo text'
+    }]
+    body = {
+        'uuid': uuid,
+        'type_sender': type_,
+        'template_id': template,
+        'subject': title,
+        'data': users_data
+    }
+    await broker.publish_to_broker(routing_key='instant', msg=json.dumps(body))

@@ -27,7 +27,7 @@ async def status():
 @app.on_event('startup')
 async def startup():
     url = f'amqp://{settings.broker.login}:{settings.broker.password}@{settings.broker.host}/'
-    utils.rabbitmq_connection = await aio_pika.connect(url=url)
+    utils.rabbitmq_connection = await aio_pika.connect_robust(url=url)
     utils.broker = await RabbitmqBroker().configure()
 
 

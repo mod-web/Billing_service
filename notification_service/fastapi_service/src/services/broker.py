@@ -55,6 +55,8 @@ class RabbitmqBroker(AbstractBroker):
         self.response = None
         self.corr_id = None
 
+        return self
+
     def on_response(self, ch, method, props, body):
         if self.corr_id == props.correlation_id:
             self.response = body
@@ -73,5 +75,12 @@ class RabbitmqBroker(AbstractBroker):
             routing_key=routing_key,
         )
 
-        await self.connection.process_data_events(time_limit=None)  # wait for RPC
+        # For working with transactions
+        channel_no_confirms = await self.connection.channel(
+            publisher_confirms=False
+        )
+        await channel_no_confirms.close()
         return self.response
+
+        # await self.connection.process_data_events(time_limit=None)  # wait for RPC
+        # return self.response

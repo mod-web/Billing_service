@@ -30,46 +30,49 @@ services:
       - static_data:/static:ro
     ports:
       - "80:80"
-
-  redis:
-    image: redis:latest
-    container_name: ${REDIS_HOST}
-
-  scheduler:
-    restart: always
-    volumes:
-      - static_data:/opt/app/static
-    build:
-      context: ./scheduler
-    env_file:
-      - ./.env
     depends_on:
-      - postgres
+      - fastapi_service
 
-  worker:
-    restart: always
-    build:
-      context: ./scheduler
-    command: ['celery', '-A', 'config', 'worker']
-    env_file:
-      - .env
-    expose:
-      - ${CELERY_WORKER_PORT}
-    depends_on:
-      - scheduler
 
-  celery-beats:
-    restart: always
-    env_file:
-      - .env
-    build:
-      context: ./scheduler
-    command: ['celery', '-A', 'config', 'beat', '-l', 'INFO']
-    expose:
-      - ${CELERY_BEAT_PORT}
-    depends_on:
-      - scheduler
-      - worker
+#  redis:
+#    image: redis:latest
+#    container_name: ${REDIS_HOST}
+#
+#  scheduler:
+#    restart: always
+#    volumes:
+#      - static_data:/opt/app/static
+#    build:
+#      context: ./scheduler
+#    env_file:
+#      - ./.env
+#    depends_on:
+#      - postgres
+
+#  worker:
+#    restart: always
+#    build:
+#      context: ./scheduler
+#    command: ['celery', '-A', 'config', 'worker']
+#    env_file:
+#      - .env
+#    expose:
+#      - ${CELERY_WORKER_PORT}
+#    depends_on:
+#      - scheduler
+
+#  celery-beats:
+#    restart: always
+#    env_file:
+#      - .env
+#    build:
+#      context: ./scheduler
+#    command: ['celery', '-A', 'config', 'beat', '-l', 'INFO']
+#    expose:
+#      - ${CELERY_BEAT_PORT}
+#    depends_on:
+#      - scheduler
+#      - worker
 
   rabbitmq:
     image: rabbitmq:3.11.13-management
@@ -103,14 +106,14 @@ services:
       rabbitmq:
         condition: service_healthy
 
-  sender_queue:
-    build: ./sender_queue
-    restart: on-failure
-    env_file:
-      - ./.env
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
+#  sender_queue:
+#    build: ./sender_queue
+#    restart: on-failure
+#    env_file:
+#      - ./.env
+#    depends_on:
+#      rabbitmq:
+#        condition: service_healthy
 
 volumes:
   postgres_data:
