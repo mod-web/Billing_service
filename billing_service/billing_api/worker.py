@@ -12,7 +12,7 @@ celery.conf.result_backend = f"redis://{settings.redis.host}:{settings.redis.por
 celery.conf.beat_schedule = {
     'add-every-day': {
         'task': 'worker.cancel_prolong',
-        'schedule': crontab(minute=0, hour=6), # every day at 6AM
+        'schedule': crontab(minute=0, hour=6),   # every day at 6AM
         # 'schedule': 10, # For test every 10 sec
         # 'args': (1, 1), # For test
     }

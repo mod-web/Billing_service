@@ -72,7 +72,7 @@ if __name__ == '__main__':
             if msg is None:
                 pass
             elif msg.error():
-                logging.warning("ERROR: %s".format(msg.error()))
+                logging.warning(f"ERROR: {msg.error()}")
             else:
                 prolong(msg)
 

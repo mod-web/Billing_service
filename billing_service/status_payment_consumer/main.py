@@ -31,6 +31,7 @@ def status_payment(message):
     payment_data = json.loads(message.value().decode('utf-8'))
     change_status_order(payment_id, payment_data)
 
+
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--reset', action='store_true')
@@ -58,7 +59,7 @@ if __name__ == '__main__':
             if msg is None:
                 pass
             elif msg.error():
-                logging.warning("ERROR: %s".format(msg.error()))
+                logging.warning(f"ERROR: {msg.error()}")
             else:
                 status_payment(msg)
 

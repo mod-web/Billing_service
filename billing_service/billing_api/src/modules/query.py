@@ -7,8 +7,8 @@ async def update_without_renew() -> str:
               JOIN public.orders ON public.user_subscribes.order_id = public.orders.id
               JOIN public.type_subscribes ON public.user_subscribes.type_subscribe_id = public.type_subscribes.id
               WHERE public.orders.renew = False
-              AND public.user_subscribes.active = True                
-              AND 
+              AND public.user_subscribes.active = True
+              AND
               CASE WHEN period = '1mon'
               THEN (public.user_subscribes.start_active_at + '1mon'::INTERVAL) < CURRENT_DATE
               WHEN period = '3mon'
@@ -30,8 +30,8 @@ async def get_renew_subscriptions() -> str:
               JOIN public.orders ON public.user_subscribes.order_id = public.orders.id
               JOIN public.type_subscribes ON public.user_subscribes.type_subscribe_id = public.type_subscribes.id
               WHERE public.orders.renew = True
-              AND public.user_subscribes.active = True                
-              AND 
+              AND public.user_subscribes.active = True
+              AND
               CASE WHEN period = '1mon'
               THEN (public.user_subscribes.start_active_at + '1mon'::INTERVAL) < CURRENT_DATE
               WHEN period = '3mon'
