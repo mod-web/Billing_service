@@ -1,9 +1,10 @@
-from http import HTTPStatus
 import json
 import logging
 import aiohttp as aiohttp
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
+from confluent_kafka import Producer
 
 from src.db.base import get_session
 from src.modules.query import update_without_renew, get_renew_subscriptions
@@ -47,8 +48,8 @@ async def buy_subscription(
     summary='Disable expired subscription & renew',
 )
 async def change_subscription(
-    session = Depends(get_session),
-    producer = Depends(get_kafka)
+    session: AsyncSession = Depends(get_session),
+    producer: Producer = Depends(get_kafka)
 ) -> dict:
 
     try:

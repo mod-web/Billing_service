@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
 import aiohttp as aiohttp
 
@@ -18,7 +19,7 @@ router = APIRouter()
     summary='Get all orders',
 )
 async def get_orders(
-    session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
 ) -> list:
     try:
         stmt = text("""SELECT * FROM public.orders""")
@@ -41,7 +42,7 @@ async def get_orders(
 async def new_order(
     user_id: str,
     type_subscribe_id: str,
-    session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
 ) -> str:
     try:
         res = await session.execute(orders.insert().values(user_id=user_id, status='created'))
@@ -71,7 +72,7 @@ async def change_status(
     payment_id: str,
     status: str,
     renew: bool,
-    session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
 ) -> str:
     try:
         order_res = await session.execute(orders.update()
@@ -106,7 +107,7 @@ async def change_status(
 )
 async def delete_order(
     order_id: str,
-    session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
 ) -> str:
     try:
         await session.execute(

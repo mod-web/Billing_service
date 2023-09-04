@@ -3,6 +3,7 @@ from datetime import datetime
 from dateutil.relativedelta import *
 
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
 from src.db.base import get_session
 from src.models.models import user_subscribes
@@ -20,7 +21,7 @@ router = APIRouter()
 )
 async def create_refund(
     subscription_id: str,
-    session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ) -> dict:
     try:
         stmt = text(f"""SELECT period, price, start_active_at, payment_id 

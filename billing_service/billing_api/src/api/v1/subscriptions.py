@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
 
 from src.models.models import user_subscribes
@@ -16,7 +17,7 @@ router = APIRouter()
     summary='Get all subscriptions',
 )
 async def get_subscriptions(
-    session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
 ) -> list:
     try:
         stmt = text("""SELECT * FROM public.user_subscribes""")
@@ -40,7 +41,7 @@ async def add_subscription(
     user_id: str,
     type_subscribe_id: str,
     order_id: str | None,
-    session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
 ) -> str:
     try:
         res = await session.execute(user_subscribes.insert()
@@ -61,7 +62,7 @@ async def add_subscription(
 async def update_subscription(
     action: str,
     subscription_id: str,
-    session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
 ) -> str:
     if action == 'cancel':
         try:
@@ -98,7 +99,7 @@ async def update_subscription(
 )
 async def delete_subscription(
     subscription_id: str,
-    session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
 ):
     try:
         await session.execute(
