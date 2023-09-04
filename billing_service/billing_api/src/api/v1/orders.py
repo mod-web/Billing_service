@@ -76,11 +76,11 @@ async def change_status(
 ) -> str:
     try:
         order_res = await session.execute(orders.update()
-                                               .where(orders.c.payment_id == payment_id)
-                                               .values(status=status,
-                                                       renew=renew,
-                                                       update_at=datetime.now())
-                                               .returning(orders.c.id))
+                                                .where(orders.c.payment_id == payment_id)
+                                                .values(status=status,
+                                                        renew=renew,
+                                                        update_at=datetime.now())
+                                                .returning(orders.c.id))
         order_id = str(order_res.first()[0])
         await session.commit()
 

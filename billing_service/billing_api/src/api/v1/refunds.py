@@ -1,10 +1,10 @@
 import logging
 from datetime import datetime
-from dateutil.relativedelta import *
-
+from dateutil.relativedelta import relativedelta
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
+
 from src.db.base import get_session
 from src.models.models import user_subscribes
 from src.modules.provider.yookassa import Yookassa
@@ -70,10 +70,10 @@ async def create_refund(
         payment = provider.refund_payment(payment_id, return_price)
 
         subscribes_res = await session.execute(user_subscribes.update()
-                                          .where(user_subscribes.c.id == subscription_id)
-                                          .values(active=False,
-                                                  update_at=datetime.now())
-                                          .returning(user_subscribes.c.id))
+                                                              .where(user_subscribes.c.id == subscription_id)
+                                                              .values(active=False,
+                                                                      update_at=datetime.now())
+                                                              .returning(user_subscribes.c.id))
         await session.commit()
 
         return {'subscription_id': str(subscribes_res.first()[0]),
