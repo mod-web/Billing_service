@@ -46,7 +46,7 @@ async def add_type_subscription(
 ) -> str:
     try:
         res = await session.execute(type_subscribes.insert()
-                              .values(name=name, price=Decimal(price), period=period))
+                                                   .values(name=name, price=Decimal(price), period=period))
         await session.commit()
         return str(res.inserted_primary_key[0])
     except Exception as e:

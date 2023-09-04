@@ -24,7 +24,7 @@ async def create_refund(
     session: AsyncSession = Depends(get_session)
 ) -> dict:
     try:
-        stmt = text(f"""SELECT period, price, start_active_at, payment_id 
+        stmt = text(f"""SELECT period, price, start_active_at, payment_id
                         FROM public.user_subscribes
                         JOIN public.type_subscribes
                         ON public.user_subscribes.type_subscribe_id = public.type_subscribes.id
@@ -67,7 +67,7 @@ async def create_refund(
         return_price = round(int(day_not_spend.days) * price_per_day)
 
         provider = Yookassa(settings.yookassa.account_id, settings.yookassa.secret_key)
-        payment = provider.refund_payment(payment_id, return_price)
+        provider.refund_payment(payment_id, return_price)
 
         subscribes_res = await session.execute(user_subscribes.update()
                                                               .where(user_subscribes.c.id == subscription_id)

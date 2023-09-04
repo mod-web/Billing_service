@@ -86,11 +86,11 @@ async def change_status(
 
         if status == 'succeeded':
             subscribe_res = await session.execute(user_subscribes.update()
-                                                       .where(user_subscribes.c.order_id == order_id)
-                                                       .values(active=True,
-                                                               start_active_at=datetime.now(),
-                                                               update_at=datetime.now())
-                                                       .returning(user_subscribes.c.id))
+                                                                 .where(user_subscribes.c.order_id == order_id)
+                                                                 .values(active=True,
+                                                                         start_active_at=datetime.now(),
+                                                                         update_at=datetime.now())
+                                                                 .returning(user_subscribes.c.id))
             subscribe_id = str(subscribe_res.first()[0])
             await session.commit()
             return f'order status changed: {order_id} and active new subscribe: {subscribe_id}'
