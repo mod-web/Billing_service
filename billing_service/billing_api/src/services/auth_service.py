@@ -2,6 +2,7 @@ from typing import Dict, Any
 import aiohttp as aiohttp
 
 from config import settings
+from src.models.user_info import UserInfo
 
 
 async def get_user_info(group_name: str) -> Dict[str, Any]:

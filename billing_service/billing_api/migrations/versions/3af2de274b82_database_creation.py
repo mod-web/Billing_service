@@ -53,6 +53,15 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('id')
     )
+    op.create_table('user_info',
+    sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('user_id', sa.UUID(), nullable=False),
+    sa.Column('login', sa.String(), nullable=True),
+    sa.Column('first_name', sa.String(), nullable=True),
+    sa.Column('last_name', sa.String(), nullable=True),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('id')
+    )
     op.create_index(op.f('ix_user_subscribes_order_id'), 'user_subscribes', ['order_id'], unique=False)
     op.create_index(op.f('ix_user_subscribes_type_subscribe_id'), 'user_subscribes', ['type_subscribe_id'], unique=False)
     # ### end Alembic commands ###
@@ -65,4 +74,5 @@ def downgrade() -> None:
     op.drop_table('user_subscribes')
     op.drop_table('type_subscribes')
     op.drop_table('orders')
+    op.drop_table('user_id')
     # ### end Alembic commands ###
