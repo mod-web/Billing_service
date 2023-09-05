@@ -8,7 +8,7 @@ import aiohttp as aiohttp
 from src.models.models import orders, user_subscribes
 from src.db.base import get_session
 from config import settings
-
+from src.services.orders import get_orders_service, OrdersService
 
 router = APIRouter()
 
@@ -19,19 +19,9 @@ router = APIRouter()
     summary='Get all orders',
 )
 async def get_orders(
-    session: AsyncSession = Depends(get_session),
+    orders_service: OrdersService = Depends(get_orders_service),
 ) -> list:
-    try:
-        stmt = text("""SELECT * FROM public.orders""")
-        res = await session.execute(stmt)
-        await session.commit()
-    except Exception as e:
-        logging.warning(f'Error: {str(e)}')
-    finally:
-        orders = [i._asdict() for i in res.fetchall()]
-        if not orders:
-            raise HTTPException(status_code=404, detail="orders not found")
-        return orders
+    return await orders_service.get_orders()
 
 
 @router.post(
@@ -42,26 +32,9 @@ async def get_orders(
 async def new_order(
     user_id: str,
     type_subscribe_id: str,
-    provider: str,
-    session: AsyncSession = Depends(get_session),
+    orders_service: OrdersService = Depends(get_orders_service),
 ) -> str:
-    try:
-        res = await session.execute(orders.insert().values(user_id=user_id, status='created', provider=provider))
-        await session.commit()
-
-        params = {'user_id': user_id,
-                  'type_subscribe_id': type_subscribe_id,
-                  'order_id': str(res.inserted_primary_key[0])}
-        url = f'http://{settings.billing.host}:{settings.billing.port}/api/v1/subscriptions/'
-
-        async with aiohttp.ClientSession() as s:
-            async with s.post(url=url, params=params) as response:
-                if response.status == 200:
-                    await response.json()
-
-        return str(res.inserted_primary_key[0])
-    except Exception as e:
-        logging.warning(f'Error: {str(e)}')
+    return await orders_service.place_new_order(user_id,type_subscribe_id)
 
 
 @router.put(
@@ -73,32 +46,9 @@ async def change_status(
     payment_id: str,
     status: str,
     renew: bool,
-    session: AsyncSession = Depends(get_session),
+    orders_service: OrdersService = Depends(get_orders_service),
 ) -> str:
-    try:
-        order_res = await session.execute(orders.update()
-                                                .where(orders.c.payment_id == payment_id)
-                                                .values(status=status,
-                                                        renew=renew,
-                                                        update_at=datetime.now())
-                                                .returning(orders.c.id))
-        order_id = str(order_res.first()[0])
-        await session.commit()
-
-        if status == 'succeeded':
-            subscribe_res = await session.execute(user_subscribes.update()
-                                                                 .where(user_subscribes.c.order_id == order_id)
-                                                                 .values(active=True,
-                                                                         start_active_at=datetime.now(),
-                                                                         update_at=datetime.now())
-                                                                 .returning(user_subscribes.c.id))
-            subscribe_id = str(subscribe_res.first()[0])
-            await session.commit()
-            return f'order status changed: {order_id} and active new subscribe: {subscribe_id}'
-        else:
-            return f'order status canceled: {order_id}'
-    except Exception as e:
-        logging.warning(f'Error: {str(e)}')
+    return await orders_service.change_status(payment_id, status, renew)
 
 
 @router.delete(
@@ -108,13 +58,6 @@ async def change_status(
 )
 async def delete_order(
     order_id: str,
-    session: AsyncSession = Depends(get_session),
+    orders_service: OrdersService = Depends(get_orders_service),
 ) -> str:
-    try:
-        await session.execute(
-            orders.delete().where(orders.c.id == order_id))
-        await session.commit()
-        return {'detail': 'deleted'}
-    except Exception as e:
-        logging.warning(f'Error: {str(e)}')
-        raise HTTPException(status_code=404, detail="order not found")
+    return await orders_service.delete_order(order_id)

@@ -1,12 +1,6 @@
-import logging
-from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql import text
+from fastapi import APIRouter, Depends
 
-from src.models.models import user_subscribes
-from src.db.base import get_session
-
+from src.services.subscriptions import get_subscriptions_service, SubscriptionService
 
 router = APIRouter()
 
@@ -17,19 +11,9 @@ router = APIRouter()
     summary='Get all subscriptions',
 )
 async def get_subscriptions(
-    session: AsyncSession = Depends(get_session),
+    subscription_service: SubscriptionService = Depends(get_subscriptions_service),
 ) -> list:
-    try:
-        stmt = text("""SELECT * FROM public.user_subscribes""")
-        res = await session.execute(stmt)
-        await session.commit()
-    except Exception as e:
-        logging.warning(f'Error: {str(e)}')
-    finally:
-        subscriptions = [i._asdict() for i in res.fetchall()]
-        if not subscriptions:
-            raise HTTPException(status_code=404, detail="subscriptions not found")
-        return subscriptions
+    return await subscription_service.get_subscriptions()
 
 
 @router.post(
@@ -41,17 +25,13 @@ async def add_subscription(
     user_id: str,
     type_subscribe_id: str,
     order_id: str | None,
-    session: AsyncSession = Depends(get_session),
+    subscription_service: SubscriptionService = Depends(get_subscriptions_service),
 ) -> str:
-    try:
-        res = await session.execute(user_subscribes.insert()
-                                    .values(user_id=user_id,
-                                            type_subscribe_id=type_subscribe_id,
-                                            order_id=order_id))
-        await session.commit()
-        return str(res.inserted_primary_key[0])
-    except Exception as e:
-        logging.warning(f'Error: {str(e)}')
+    return await subscription_service.add_subscription(
+        user_id=user_id,
+        type_subscribe_id=type_subscribe_id,
+        order_id=order_id,
+    )
 
 
 @router.put(
@@ -62,21 +42,12 @@ async def add_subscription(
 async def update_subscription(
     action: str,
     subscription_id: str,
-    session: AsyncSession = Depends(get_session),
+    subscription_service: SubscriptionService = Depends(get_subscriptions_service),
 ) -> str:
-    subscribe_values = {'active': False, 'update_at': datetime.now()}
-    if action == 'prolong':
-        subscribe_values.update(start_active_at=datetime.now())
-    try:
-        subscribe_res = await session.execute(user_subscribes.update()
-                                              .where(user_subscribes.c.id == subscription_id)
-                                              .values(**subscribe_values)
-                                              .returning(user_subscribes.c.id))
-        subscribe_id = str(subscribe_res.first()[0])
-        await session.commit()
-        return subscribe_id
-    except Exception as e:
-        logging.warning(f'Error: {str(e)}')
+    return await subscription_service.update_subscription(
+        action=action,
+        subscription_id=subscription_id,
+    )
 
 
 @router.delete(
@@ -86,13 +57,6 @@ async def update_subscription(
 )
 async def delete_subscription(
     subscription_id: str,
-    session: AsyncSession = Depends(get_session),
-):
-    try:
-        await session.execute(
-            user_subscribes.delete().where(user_subscribes.c.id == subscription_id))
-        await session.commit()
-        return {'detail': 'deleted'}
-    except Exception as e:
-        logging.warning(f'Error: {str(e)}')
-        raise HTTPException(status_code=404, detail="subscription not found")
+    subscription_service: SubscriptionService = Depends(get_subscriptions_service),
+) -> dict[str, str]:
+    return await subscription_service.delete_subscription(subscription_id)
