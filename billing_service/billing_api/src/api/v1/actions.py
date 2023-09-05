@@ -7,7 +7,8 @@ router = APIRouter()
 
 @router.post(
     '/buy',
-    description='user_id: 5a146f79-cf46-4c7e-ab09-e0e172a5c32e',
+    description='user_id: 5a146f79-cf46-4c7e-ab09-e0e172a5c32e\n'
+                'provider: yookassa',
     summary='Buy a new subscription',
 )
 async def buy_subscription(
