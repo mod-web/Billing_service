@@ -22,6 +22,7 @@ orders = Table(
            nullable=True),
     Column('renew', Boolean, default=False),
     Column('status', String),
+    Column('provider', String, default='yookassa'),
     Column('created_at', DateTime, default=datetime.now()),
     Column('update_at', DateTime, default=datetime.now()),
 )

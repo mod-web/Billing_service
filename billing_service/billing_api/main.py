@@ -1,4 +1,3 @@
-import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
@@ -19,11 +18,3 @@ app.include_router(refunds.router, prefix='/api/v1/refunds', tags=['Refunds'])
 app.include_router(subscriptions.router, prefix='/api/v1/subscriptions', tags=['Subscriptions'])
 app.include_router(type_subscriptions.router, prefix='/api/v1/type_subscriptions', tags=['Type subscriptions'])
 app.include_router(actions.router, prefix='/api/v1/actions', tags=['External'])
-
-
-if __name__ == '__main__':
-    uvicorn.run(
-        'main:app',
-        host='0.0.0.0',
-        port=8000,
-    )

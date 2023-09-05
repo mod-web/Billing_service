@@ -42,10 +42,11 @@ async def get_orders(
 async def new_order(
     user_id: str,
     type_subscribe_id: str,
+    provider: str,
     session: AsyncSession = Depends(get_session),
 ) -> str:
     try:
-        res = await session.execute(orders.insert().values(user_id=user_id, status='created'))
+        res = await session.execute(orders.insert().values(user_id=user_id, status='created', provider=provider))
         await session.commit()
 
         params = {'user_id': user_id,
