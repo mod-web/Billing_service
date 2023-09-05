@@ -1,0 +1,308 @@
+openapi: 3.0.0
+
+info:
+  description: Auth API
+  version: "1.0.0"
+  title: Auth API
+tags:
+  - name: 'auth_api'
+    description: 'Authentication api'
+
+paths:
+  /api/v1/auth/signup:
+    post:
+      summary: Регистрация нового пользователя
+      tags:
+        - auth api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: Пользователь создан
+        '400':
+          description: Регистрация не прошла
+
+  /api/v1/auth/login:
+    post:
+      summary: 'Вход в учетную запись'
+      tags:
+        - auth api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: 'Success login'
+        '401':
+          description: 'Auth failed'
+
+
+  /api/v1/auth/logout:
+    post:
+      summary: Выход из учетной записи
+      tags:
+        - auth api
+      responses:
+        '200':
+          description: 'Success logout'
+        '401':
+          description: 'Auth failed'
+      security:
+        - AccessToken: [ ]
+        - RefreshToken: [ ]
+
+  /api/v1/auth/refresh:
+    post:
+      summary: Получить новую пару токенов
+      tags:
+        - auth api
+      responses:
+        '200':
+          description: 'Tokens succesfully updated'
+        '401':
+          description: 'Token updating failed'
+      security:
+        - AccessToken: [ ]
+        - RefreshToken: [ ]
+
+  /api/v1/users/login-history:
+    get:
+      summary: 'Получение истории логинов пользователя'
+      parameters:
+        - name: page_size
+          in: query
+          description: 'размер страницы'
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'Список истории получен'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/History'
+        '403':
+          description: 'Нет прав на получение истории'
+      security:
+        - AccessToken: [ ]
+
+  # /api/v1/users/{user_id}/apply-roles:
+  #   post:
+  #     summary: 'Применение роли пользователю'
+  #     tags:
+  #       - user api
+  #     parameters:
+  #       - name: user_id
+  #         in: query
+  #         description: 'ид пользователя'
+  #         required: true
+  #         schema:
+  #           type: integer
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               role_name:
+  #                 type: string
+  #     responses:
+  #       '200':
+  #         description: 'Роль применена'
+  #       '403':
+  #         description: 'Нет прав'
+  #       '404':
+  #         description: 'Роль или пользователь не найдены'
+  #     security:
+  #       - AccessToken: [ ]
+
+  # /api/v1/users/{user_id}/delete-role:
+  #   post:
+  #     summary: 'Удаление роли у пользователя'
+  #     tags:
+  #       - user api
+  #     parameters:
+  #       - name: user_id
+  #         in: query
+  #         description: 'ид пользователя'
+  #         required: true
+  #         schema:
+  #           type: integer
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               role_name:
+  #                 type: string
+  #     responses:
+  #       '200':
+  #         description: 'Роль удалена'
+  #       '403':
+  #         description: 'Нет прав'
+  #       '404':
+  #         description: 'Роль или пользователь не найдены'
+  #     security:
+  #       - AccessToken: [ ]
+
+  /api/v1/roles/create:
+    post:
+      summary: Создание роли
+      tags:
+        - role api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role_name:
+                  type: string
+      responses:
+        '200':
+          description: 'Роль создана'
+        '403':
+          description: 'Нет прав'
+      security:
+        - AccessToken: [ ]
+
+  /api/v1/roles:
+    get:
+      summary: Получить всех список ролей
+      tags:
+        - role api
+      responses:
+        '200':
+          description: 'Список ролей получен'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
+        '403':
+          description: 'Нет прав'
+      security:
+        - AccessToken: [ ]
+
+  # /api/v1/roles/{role_id}:
+  #   patch:
+  #     summary: Редактирование роли
+  #     tags:
+  #       - role api
+  #     parameters:
+  #       - name: user_id
+  #         in: query
+  #         description: 'ид пользователя'
+  #         required: true
+  #         schema:
+  #           type: integer
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               role:
+  #                 type: string
+  #     responses:
+  #       '200':
+  #         description: 'Роль отредактирована'
+  #       '404':
+  #         description: 'Роль не найдена'
+  #       '403':
+  #         description: 'Роль с таким названием уже есть'
+  #     security:
+  #       - AccessToken: [ ]
+
+    post:
+      summary: удалить роль
+      responses:
+        '200':
+          description: 'Роль удалена'
+        '400':
+          description: 'Роль не найдена'
+        '403':
+          description: 'Роль с таким названием уже есть'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+      security:
+        - AccessToken: [ ]
+
+
+components:
+  securitySchemes:
+      AccessToken:
+        type: apiKey
+        in: cookie
+        name: API-KEY-ACCESS
+      RefreshToken:
+        type: apiKey
+        in: cookie
+        name: API-KEY-REFRESH
+
+  schemas:
+    User:
+      type: object
+      required:
+        - login
+        - password
+        - first_name
+        - last_name
+      properties:
+        login:
+          type: string
+        password:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+
+    Role:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          type: string
+
+    History:
+      type: object
+      required:
+        - id
+        - user_id
+        - user_agent
+        - auth_date
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        user_agent:
+          type: string
+        auth_date:
+          type: string
