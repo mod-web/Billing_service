@@ -1,9 +1,10 @@
 import logging
 from datetime import datetime
-from dateutil.relativedelta import *
-
+from dateutil.relativedelta import relativedelta
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
+
 from src.db.base import get_session
 from src.models.models import user_subscribes
 from src.modules.provider.yookassa import Yookassa
@@ -20,10 +21,10 @@ router = APIRouter()
 )
 async def create_refund(
     subscription_id: str,
-    session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ) -> dict:
     try:
-        stmt = text(f"""SELECT period, price, start_active_at, payment_id 
+        stmt = text(f"""SELECT period, price, start_active_at, payment_id
                         FROM public.user_subscribes
                         JOIN public.type_subscribes
                         ON public.user_subscribes.type_subscribe_id = public.type_subscribes.id
@@ -66,13 +67,13 @@ async def create_refund(
         return_price = round(int(day_not_spend.days) * price_per_day)
 
         provider = Yookassa(settings.yookassa.account_id, settings.yookassa.secret_key)
-        payment = provider.refund_payment(payment_id, return_price)
+        provider.refund_payment(payment_id, return_price)
 
         subscribes_res = await session.execute(user_subscribes.update()
-                                          .where(user_subscribes.c.id == subscription_id)
-                                          .values(active=False,
-                                                  update_at=datetime.now())
-                                          .returning(user_subscribes.c.id))
+                                                              .where(user_subscribes.c.id == subscription_id)
+                                                              .values(active=False,
+                                                                      update_at=datetime.now())
+                                                              .returning(user_subscribes.c.id))
         await session.commit()
 
         return {'subscription_id': str(subscribes_res.first()[0]),

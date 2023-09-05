@@ -1,10 +1,5 @@
-import logging
-from decimal import Decimal
-from sqlalchemy.sql import text
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
-from src.db.base import get_session
-from src.models.models import type_subscribes
 from src.services.subscriptions import SubscriptionService, get_subscriptions_service
 
 router = APIRouter()

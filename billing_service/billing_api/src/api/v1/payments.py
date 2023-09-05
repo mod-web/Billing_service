@@ -1,7 +1,9 @@
 import json
 import logging
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
+from confluent_kafka import Producer
 
 from src.db.base import get_session
 from src.services.kafka import get_kafka
@@ -19,8 +21,8 @@ router = APIRouter()
 )
 async def start_payment(
         order_id: str,
-        session = Depends(get_session),
-        producer = Depends(get_kafka)
+        session: AsyncSession = Depends(get_session),
+        producer: Producer = Depends(get_kafka)
 ) -> str:
     try:
         stmt = text(f"""SELECT public.type_subscribes.name, public.type_subscribes.price FROM public.orders
