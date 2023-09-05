@@ -74,3 +74,22 @@ type_subscribes = Table(
                '12mon',
                name='periodTypes'))
 )
+
+user_info = Table(
+    'user_info',
+    metadata,
+    Column('id',
+           UUID(as_uuid=True),
+           primary_key=True,
+           default=uuid.uuid4,
+           unique=True),
+    Column('user_id',
+           UUID(as_uuid=True),
+           nullable=False),
+    Column('login',
+           String),
+    Column('first_name',
+           String),
+    Column('last_name',
+           String),
+)
