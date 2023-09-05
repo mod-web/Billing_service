@@ -17,29 +17,32 @@ router = APIRouter()
 
 @router.post(
     '/buy',
-    description='user_id: 5a146f79-cf46-4c7e-ab09-e0e172a5c32e',
+    description='user_id: 5a146f79-cf46-4c7e-ab09-e0e172a5c32e\n'
+                'provider: yookassa',
     summary='Buy a new subscription',
 )
 async def buy_subscription(
     user_id: str,
-    type_subscription_id: str
+    type_subscription_id: str,
+    provider: str
 ) -> str:
     order_params = {'user_id': user_id,
-                    'type_subscribe_id': type_subscription_id}
+                    'type_subscribe_id': type_subscription_id,
+                    'provider': provider}
     order_url = f'http://{settings.billing.host}:{settings.billing.port}/api/v1/orders/'
     async with aiohttp.ClientSession() as s:
         async with s.post(url=order_url, params=order_params) as response:
             if response.status == 200:
                 order_id = await response.json()
 
-    payment_params = {'order_id': order_id}
+    payment_params = {'order_id': order_id,
+                      'provider': provider}
     payment_url = f'http://{settings.billing.host}:{settings.billing.port}/api/v1/payments/'
     async with aiohttp.ClientSession() as s:
         async with s.post(url=payment_url, params=payment_params) as response:
             if response.status == 200:
                 payment_link = await response.json()
-
-    return payment_link
+                return payment_link
 
 
 @router.put(

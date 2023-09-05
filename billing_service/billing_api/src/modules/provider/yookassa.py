@@ -1,14 +1,14 @@
 from yookassa import Configuration, Payment, Refund
 
 from .abc_provider import Provider
+from config import settings
 
 
 class Yookassa(Provider):
-    def __init__(self, account_id: int, secret_key: str):
-        self.account_id = account_id
-        self.secret_key = secret_key
+    account_id = settings.yookassa.account_id
+    secret_key = settings.yookassa.secret_key
 
-    def create_payment(self, order_id, name_subscribe, amount):
+    def create_payment(self, order_id: str, name_subscribe: str, amount: int) -> Payment:
         Configuration.account_id = self.account_id
         Configuration.secret_key = self.secret_key
 
@@ -27,7 +27,7 @@ class Yookassa(Provider):
 
         return payment
 
-    def refund_payment(self, payment_id, return_price):
+    def refund_payment(self, payment_id: str, return_price: int) -> Payment:
         Configuration.account_id = self.account_id
         Configuration.secret_key = self.secret_key
 

@@ -8,7 +8,6 @@ from confluent_kafka import Producer
 from src.db.base import get_session
 from src.services.kafka import get_kafka
 from src.modules.provider.yookassa import Yookassa
-from config import settings
 
 
 router = APIRouter()
@@ -21,6 +20,7 @@ router = APIRouter()
 )
 async def start_payment(
         order_id: str,
+        provider: str,
         session: AsyncSession = Depends(get_session),
         producer: Producer = Depends(get_kafka)
 ) -> str:
@@ -35,8 +35,13 @@ async def start_payment(
     except Exception as e:
         logging.warning(f'Error: {str(e)}')
 
-    provider = Yookassa(settings.yookassa.account_id, settings.yookassa.secret_key)
-    payment = provider.create_payment(order_id, data_subscribe[0], data_subscribe[1])
+    match provider:
+        case 'yookassa':
+            pvd = Yookassa()
+        case _:
+            return {'status': 'provider is not supported'}
+
+    payment = pvd.create_payment(order_id, data_subscribe[0], data_subscribe[1])
     confirmation_url = payment.confirmation.confirmation_url
 
     data_transaction = {'payment_id': payment.id,
