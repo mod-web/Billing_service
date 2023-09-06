@@ -11,12 +11,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.db.base import get_session
 from src.models.models import user_subscribes
 from src.modules.provider.yookassa import Yookassa
+from src.services.base_service import BaseService
 from src.services.kafka import get_kafka
 
 
-class RefundsService:
+class RefundsService(BaseService):
     def __init__(self, session: AsyncSession, producer: Producer) -> None:
-        self.session = session
+        super().__init__(session)
         self.producer = producer
 
     async def __get_subscription(self, subscription_id: str):
@@ -28,10 +29,8 @@ class RefundsService:
                         ON public.user_subscribes.order_id = public.orders.id
                         WHERE public.user_subscribes.id = '{subscription_id}'
                         AND active = TRUE""")
-        res = await self.session.execute(stmt)
-        await self.session.commit()
-
-        return res.fetchone()
+        if query_result := self.__execute_stmt(stmt):
+            return query_result.fetchone()
 
     async def create_refund(self, subscription_id: str) -> dict:
         subscription = await self.__get_subscription(subscription_id)

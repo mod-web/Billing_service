@@ -8,25 +8,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.base import get_session
 from src.modules.provider.abc_provider import Provider
+from src.services.base_service import BaseService
 from src.services.kafka import get_kafka
 
 
-class PaymentsService:
+class PaymentsService(BaseService):
     def __init__(self, session: AsyncSession, producer: Producer) -> None:
-        self.session = session
+        super().__init__(session)
         self.producer = producer
 
     async def __get_data_subscribe(self, order_id: str):
-        try:
-            stmt = text(f"""SELECT public.type_subscribes.name, public.type_subscribes.price FROM public.orders
-                            JOIN public.user_subscribes ON public.orders.id = public.user_subscribes.order_id
-                            JOIN public.type_subscribes ON public.user_subscribes.type_subscribe_id =public.type_subscribes.id
-                            WHERE public.orders.id = '{order_id}'""")
-            res = await self.session.execute(stmt)
-            await self.session.commit()
-            return res.fetchone()
-        except Exception as e:
-            logging.warning(f'Error: {str(e)}')
+        stmt = text(f"""SELECT public.type_subscribes.name, public.type_subscribes.price FROM public.orders
+                                    JOIN public.user_subscribes ON public.orders.id = public.user_subscribes.order_id
+                                    JOIN public.type_subscribes ON public.user_subscribes.type_subscribe_id =public.type_subscribes.id
+                                    WHERE public.orders.id = '{order_id}'""")
+        if query_result := self.__execute_stmt(stmt):
+            return query_result.fetchone()
 
     async def __deliver_message(self, payment, order_id: str) -> None:
         data_transaction = {'payment_id': payment.id,

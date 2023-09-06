@@ -13,26 +13,23 @@ from config import settings
 from src.db.base import get_session
 from src.models.models import user_subscribes, type_subscribes
 from src.modules.query import update_without_renew, get_renew_subscriptions
+from src.services.base_service import BaseService
 from src.services.kafka import get_kafka
 
 
-class SubscriptionService:
+class SubscriptionService(BaseService):
     def __init__(self, session: AsyncSession, producer: Producer) -> None:
-        self.session = session
+        super().__init__(session)
         self.producer = producer
 
     async def get_subscriptions(self):
-        try:
-            stmt = text("""SELECT * FROM public.user_subscribes""")
-            res = await self.session.execute(stmt)
-            await self.session.commit()
-        except Exception as e:
-            logging.warning(f'Error: {str(e)}')
-        finally:
-            subscriptions = [i._asdict() for i in res.fetchall()]
+        stmt = text("""SELECT * FROM public.user_subscribes""")
+        if query_result := self.__execute_stmt(stmt):
+            subscriptions = [i._asdict() for i in query_result.fetchall()]
             if not subscriptions:
                 raise HTTPException(status_code=404, detail="subscriptions not found")
             return subscriptions
+        return []
 
     async def add_subscription(self, user_id: str, type_subscribe_id: str, order_id: str) -> str:
         try:
@@ -75,17 +72,13 @@ class SubscriptionService:
             raise HTTPException(status_code=404, detail="subscription not found")
 
     async def get_type_subscriptions(self) -> list:
-        try:
-            stmt = text("""SELECT * FROM public.type_subscribes""")
-            res = await self.session.execute(stmt)
-            await self.session.commit()
-        except Exception as e:
-            logging.warning(f'Error: {str(e)}')
-        finally:
-            types = [i._asdict() for i in res.fetchall()]
+        stmt = text("""SELECT * FROM public.type_subscribes""")
+        if query_result := self.__execute_stmt(stmt):
+            types = [i._asdict() for i in query_result.fetchall()]
             if not types:
                 raise HTTPException(status_code=404, detail="types not found")
             return types
+        return []
 
     async def add_type_subscription(self, name: str, price: str, period: str) -> str:
         try:
@@ -131,27 +124,17 @@ class SubscriptionService:
                     return payment_link
 
     async def change_subscription(self) -> dict:
-
-        try:
-            query = await update_without_renew()
-            stmt = text(query)
-            res = await self.session.execute(stmt)
-            await self.session.commit()
-            data_subscribe = res.fetchall()
+        query = await update_without_renew()
+        stmt = text(query)
+        if query_result := self.__execute_stmt(stmt):
+            data_subscribe = query_result.fetchall()
             changed = [] if data_subscribe is None else [i[0] for i in data_subscribe]
-        except Exception as e:
-            logging.warning(f'Error: {str(e)}')
 
-        try:
-            query = await get_renew_subscriptions()
-            stmt = text(query)
-            res = await self.session.execute(stmt)
-            await self.session.commit()
-            data_subscribe = res.fetchall()
-
+        query = await get_renew_subscriptions()
+        stmt = text(query)
+        if query_result := self.__execute_stmt(stmt):
+            data_subscribe = query_result.fetchall()
             prolonging_subscriptions = [] if data_subscribe is None else [i._asdict() for i in data_subscribe]
-        except Exception as e:
-            logging.warning(f'Error: {str(e)}')
 
         def acked(err, msg):
             if err is not None:
