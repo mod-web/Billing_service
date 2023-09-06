@@ -9,24 +9,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from config import settings
 from src.db.base import get_session
 from src.models.models import orders, user_subscribes
+from src.services.base_service import BaseService
 
 
-class OrdersService:
+class OrdersService(BaseService):
     def __init__(self, session: AsyncSession) -> None:
-        self.session = session
+        super().__init__(session)
 
     async def get_orders(self) -> list:
-        try:
-            stmt = text("""SELECT * FROM public.orders""")
-            res = await self.session.execute(stmt)
-            await self.session.commit()
-        except Exception as e:
-            logging.warning(f'Error: {str(e)}')
-        finally:
-            orders = [i._asdict() for i in res.fetchall()]
+        stmt = text("""SELECT * FROM public.orders""")
+        if query_result := self.__execute_stmt(stmt=stmt):
+            orders = [i._asdict() for i in query_result.fetchall()]
             if not orders:
                 raise HTTPException(status_code=404, detail="orders not found")
             return orders
+        return []
 
 
     async def create_no_active_subscription(self, user_id: str, type_subscribe_id: str, order_id: str) -> None:
