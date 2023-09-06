@@ -1,5 +1,4 @@
 from yookassa import Configuration, Payment, Refund
-from yookassa.domain.response import RefundResponse, PaymentResponse
 
 from .abc_provider import Provider
 from config import settings

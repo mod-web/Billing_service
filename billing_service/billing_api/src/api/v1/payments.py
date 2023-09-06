@@ -22,4 +22,4 @@ async def start_payment(
         case _:
             return {'status': 'provider is not supported'}
 
-    await payments_service.start_payment(order_id=order_id, provider=pvd)
+    return await payments_service.start_payment(order_id=order_id, provider=pvd)

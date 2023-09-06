@@ -125,10 +125,11 @@ class SubscriptionService:
             logging.warning(f'Error: {str(e)}')
             raise HTTPException(status_code=404, detail="type not found")
 
-    async def buy_subscription(self, user_id: str, type_subscription_id: str) -> str:
+    async def buy_subscription(self, user_id: str, type_subscription_id: str, provider: str) -> str:
         order_params = {
             'user_id': user_id,
             'type_subscribe_id': type_subscription_id,
+            'provider': provider,
         }
         order_url = f'http://{settings.billing.host}:{settings.billing.port}/api/v1/orders/'
         async with aiohttp.ClientSession() as s:
@@ -142,8 +143,7 @@ class SubscriptionService:
             async with s.post(url=payment_url, params=payment_params) as response:
                 if response.status == 200:
                     payment_link = await response.json()
-
-        return payment_link
+                    return payment_link
 
     async def change_subscription(self) -> dict:
 

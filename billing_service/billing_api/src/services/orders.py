@@ -28,9 +28,9 @@ class OrdersService:
                 raise HTTPException(status_code=404, detail="orders not found")
             return orders
 
-    async def place_new_order(self, user_id: str, type_subscribe_id: str) -> str:
+    async def place_new_order(self, user_id: str, type_subscribe_id: str, provider: str) -> str:
         try:
-            res = await self.session.execute(orders.insert().values(user_id=user_id, status='created'))
+            res = await self.session.execute(orders.insert().values(user_id=user_id, status='created', provider=provider))
             await self.session.commit()
 
             params = {'user_id': user_id,

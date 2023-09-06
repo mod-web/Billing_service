@@ -34,8 +34,8 @@ class PaymentsService:
                             'created_at': payment.created_at}
 
         statement = text(f"""UPDATE public.orders
-                                         SET payment_id='{payment.id}', status='pending'
-                                         WHERE id = '{order_id}';""")
+                             SET payment_id='{payment.id}', status='pending'
+                             WHERE id = '{order_id}';""")
 
         try:
             await self.session.execute(statement)
@@ -53,7 +53,7 @@ class PaymentsService:
         self.producer.poll(1)
 
     async def start_payment(self, order_id: str, provider: Provider) -> str:
-        if data_subscribe := self.__get_data_subscribe(order_id):
+        if data_subscribe := await self.__get_data_subscribe(order_id):
 
             payment = provider.create_payment(order_id, data_subscribe[0], data_subscribe[1])
             confirmation_url = payment.confirmation.confirmation_url

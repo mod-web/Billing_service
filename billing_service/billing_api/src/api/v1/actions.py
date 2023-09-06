@@ -14,9 +14,10 @@ router = APIRouter()
 async def buy_subscription(
     user_id: str,
     type_subscription_id: str,
+    provider: str,
     subscription_service: SubscriptionService = Depends(get_subscriptions_service),
 ) -> str:
-    return await subscription_service.buy_subscription(user_id, type_subscription_id)
+    return await subscription_service.buy_subscription(user_id, type_subscription_id, provider)
 
 
 @router.put(

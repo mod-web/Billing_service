@@ -32,9 +32,10 @@ async def get_orders(
 async def new_order(
     user_id: str,
     type_subscribe_id: str,
+    provider: str,
     orders_service: OrdersService = Depends(get_orders_service),
 ) -> str:
-    return await orders_service.place_new_order(user_id,type_subscribe_id)
+    return await orders_service.place_new_order(user_id,type_subscribe_id,provider)
 
 
 @router.put(
