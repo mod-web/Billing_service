@@ -28,24 +28,35 @@ class OrdersService:
                 raise HTTPException(status_code=404, detail="orders not found")
             return orders
 
+
+    async def create_no_active_subscription(self, user_id: str, type_subscribe_id: str, order_id: str) -> None:
+        """ Создание неактивной подписки """
+
+        params = {'user_id': user_id,
+                  'type_subscribe_id': type_subscribe_id,
+                  'order_id': order_id}
+        url = f'http://{settings.billing.host}:{settings.billing.port}/api/v1/subscriptions/'
+
+        async with aiohttp.ClientSession() as s:
+            async with s.post(url=url, params=params) as response:
+                if response.status == 200:
+                    await response.json()
+
+
     async def place_new_order(self, user_id: str, type_subscribe_id: str, provider: str) -> str:
+        """ Создание заказа и неактивной подписки """
+
         try:
             res = await self.session.execute(orders.insert().values(user_id=user_id, status='created', provider=provider))
             await self.session.commit()
 
-            params = {'user_id': user_id,
-                      'type_subscribe_id': type_subscribe_id,
-                      'order_id': str(res.inserted_primary_key[0])}
-            url = f'http://{settings.billing.host}:{settings.billing.port}/api/v1/subscriptions/'
+            order_id = str(res.inserted_primary_key[0])
+            await self.create_no_active_subscription(user_id, type_subscribe_id, order_id)
 
-            async with aiohttp.ClientSession() as s:
-                async with s.post(url=url, params=params) as response:
-                    if response.status == 200:
-                        await response.json()
-
-            return str(res.inserted_primary_key[0])
+            return order_id
         except Exception as e:
             logging.warning(f'Error: {str(e)}')
+
 
     async def change_status(self, payment_id: str, status: str, renew: bool) -> str:
         try:
