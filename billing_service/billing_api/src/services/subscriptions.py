@@ -48,36 +48,21 @@ class SubscriptionService:
             logging.warning(f'Error: {str(e)}')
 
     async def update_subscription(self, action: str, subscription_id: str) -> str:
-        if action == 'cancel':
-            try:
-                subscribe_res = await self.session.execute(
-                    user_subscribes.update().where(
-                        user_subscribes.c.id == subscription_id,
-                    ).values(
-                        active=False,
-                        update_at=datetime.now(),
-                    ).returning(user_subscribes.c.id))
-                subscribe_id = str(subscribe_res.first()[0])
-                await self.session.commit()
-                return subscribe_id
-            except Exception as e:
-                logging.warning(f'Error: {str(e)}')
-
-        elif action == 'prolong':
-            try:
-                subscribe_res = await self.session.execute(
-                    user_subscribes.update().where(
-                        user_subscribes.c.id == subscription_id,
-                    ).values(
-                        active=True,
-                        start_active_at=datetime.now(),
-                        update_at=datetime.now(),
-                    ).returning(user_subscribes.c.id))
-                subscribe_id = str(subscribe_res.first()[0])
-                await self.session.commit()
-                return subscribe_id
-            except Exception as e:
-                logging.warning(f'Error: {str(e)}')
+        subscribe_values = {'active': False, 'update_at': datetime.now()}
+        if action == 'prolong':
+            subscribe_values.update(start_active_at=datetime.now())
+        try:
+            subscribe_res = await self.session.execute(
+                user_subscribes.update().where(
+                    user_subscribes.c.id == subscription_id,
+                ).values(
+                    **subscribe_values
+                ).returning(user_subscribes.c.id))
+            subscribe_id = str(subscribe_res.first()[0])
+            await self.session.commit()
+            return subscribe_id
+        except Exception as e:
+            logging.warning(f'Error: {str(e)}')
 
     async def delete_subscription(self, subscription_id: str) -> dict[str, str]:
         try:
