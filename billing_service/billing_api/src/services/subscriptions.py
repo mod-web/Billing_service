@@ -24,7 +24,7 @@ class SubscriptionService(BaseService):
 
     async def get_subscriptions(self):
         stmt = text("""SELECT * FROM public.user_subscribes""")
-        if query_result := self._execute_stmt(stmt):
+        if query_result := await self._execute_stmt(stmt):
             subscriptions = [i._asdict() for i in query_result.fetchall()]
             if not subscriptions:
                 raise HTTPException(status_code=404, detail="subscriptions not found")
@@ -73,7 +73,7 @@ class SubscriptionService(BaseService):
 
     async def get_type_subscriptions(self) -> list:
         stmt = text("""SELECT * FROM public.type_subscribes""")
-        if query_result := self._execute_stmt(stmt):
+        if query_result := await self._execute_stmt(stmt):
             types = [i._asdict() for i in query_result.fetchall()]
             if not types:
                 raise HTTPException(status_code=404, detail="types not found")
@@ -126,13 +126,13 @@ class SubscriptionService(BaseService):
     async def change_subscription(self) -> dict:
         query = await update_without_renew()
         stmt = text(query)
-        if query_result := self._execute_stmt(stmt):
+        if query_result := await self._execute_stmt(stmt):
             data_subscribe = query_result.fetchall()
             changed = [] if data_subscribe is None else [i[0] for i in data_subscribe]
 
         query = await get_renew_subscriptions()
         stmt = text(query)
-        if query_result := self._execute_stmt(stmt):
+        if query_result := await self._execute_stmt(stmt):
             data_subscribe = query_result.fetchall()
             prolonging_subscriptions = [] if data_subscribe is None else [i._asdict() for i in data_subscribe]
 

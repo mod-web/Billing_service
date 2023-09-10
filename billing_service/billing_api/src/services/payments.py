@@ -22,7 +22,7 @@ class PaymentsService(BaseService):
                                     JOIN public.user_subscribes ON public.orders.id = public.user_subscribes.order_id
                                     JOIN public.type_subscribes ON public.user_subscribes.type_subscribe_id =public.type_subscribes.id
                                     WHERE public.orders.id = '{order_id}'""")
-        if query_result := self._execute_stmt(stmt):
+        if query_result := await self._execute_stmt(stmt):
             return query_result.fetchone()
 
     async def __deliver_message(self, payment, order_id: str) -> None:

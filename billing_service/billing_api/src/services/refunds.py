@@ -29,7 +29,7 @@ class RefundsService(BaseService):
                         ON public.user_subscribes.order_id = public.orders.id
                         WHERE public.user_subscribes.id = '{subscription_id}'
                         AND active = TRUE""")
-        if query_result := self._execute_stmt(stmt):
+        if query_result := await self._execute_stmt(stmt):
             return query_result.fetchone()
 
     async def create_refund(self, subscription_id: str) -> dict:
