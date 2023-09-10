@@ -110,18 +110,20 @@ class SubscriptionService(BaseService):
             'provider': provider,
         }
         order_url = f'http://{settings.billing.host}:{settings.billing.port}/api/v1/orders/'
+        order_id = ''
         async with aiohttp.ClientSession() as s:
             async with s.post(url=order_url, params=order_params) as response:
                 if response.status == 200:
                     order_id = await response.json()
-
-        payment_params = {'order_id': order_id}
-        payment_url = f'http://{settings.billing.host}:{settings.billing.port}/api/v1/payments/'
-        async with aiohttp.ClientSession() as s:
-            async with s.post(url=payment_url, params=payment_params) as response:
-                if response.status == 200:
-                    payment_link = await response.json()
-                    return payment_link
+        if order_id:
+            payment_params = {'order_id': order_id}
+            payment_url = f'http://{settings.billing.host}:{settings.billing.port}/api/v1/payments/'
+            async with aiohttp.ClientSession() as s:
+                async with s.post(url=payment_url, params=payment_params) as response:
+                    if response.status == 200:
+                        payment_link = await response.json()
+                        return payment_link
+        return ''
 
     async def change_subscription(self) -> dict:
         query = await update_without_renew()

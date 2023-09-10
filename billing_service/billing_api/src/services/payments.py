@@ -50,6 +50,7 @@ class PaymentsService(BaseService):
         self.producer.poll(1)
 
     async def start_payment(self, order_id: str, provider: Provider) -> str:
+        confirmation_url = ''
         if data_subscribe := await self.__get_data_subscribe(order_id):
 
             payment = provider.create_payment(order_id, data_subscribe[0], data_subscribe[1])
@@ -57,7 +58,7 @@ class PaymentsService(BaseService):
 
             await self.__deliver_message(order_id=order_id, payment=payment)
 
-            return confirmation_url
+        return confirmation_url
 
 
 def get_payments_service(
