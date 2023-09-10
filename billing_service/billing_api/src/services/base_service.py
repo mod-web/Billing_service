@@ -10,7 +10,7 @@ class BaseService(AbstractService):
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    def __execute_stmt(self, stmt: str):
+    async def __execute_stmt(self, stmt: str):
         try:
             res = await self.session.execute(stmt)
             await self.session.commit()
