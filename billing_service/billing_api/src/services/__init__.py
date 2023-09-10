@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+from sqlalchemy import text
+
 
 class AbstractBroker(ABC):
     @abstractmethod
@@ -9,7 +11,7 @@ class AbstractBroker(ABC):
 
 class AbstractService(ABC):
     @abstractmethod
-    def execute_stmt(self, stmt: str):
+    def _execute_stmt(self, stmt: text):
         pass
 
 
