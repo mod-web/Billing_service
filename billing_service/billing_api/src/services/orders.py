@@ -18,7 +18,7 @@ class OrdersService(BaseService):
 
     async def get_orders(self) -> list:
         stmt = text("""SELECT * FROM public.orders""")
-        if query_result := self.__execute_stmt(stmt=stmt):
+        if query_result := await self._execute_stmt(stmt=stmt):
             orders = [i._asdict() for i in query_result.fetchall()]
             if not orders:
                 raise HTTPException(status_code=404, detail="orders not found")

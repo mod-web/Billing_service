@@ -22,7 +22,7 @@ class PaymentsService(BaseService):
                                     JOIN public.user_subscribes ON public.orders.id = public.user_subscribes.order_id
                                     JOIN public.type_subscribes ON public.user_subscribes.type_subscribe_id =public.type_subscribes.id
                                     WHERE public.orders.id = '{order_id}'""")
-        if query_result := self.__execute_stmt(stmt):
+        if query_result := await self._execute_stmt(stmt):
             return query_result.fetchone()
 
     async def __deliver_message(self, payment, order_id: str) -> None:
@@ -50,6 +50,7 @@ class PaymentsService(BaseService):
         self.producer.poll(1)
 
     async def start_payment(self, order_id: str, provider: Provider) -> str:
+        confirmation_url = ''
         if data_subscribe := await self.__get_data_subscribe(order_id):
 
             payment = provider.create_payment(order_id, data_subscribe[0], data_subscribe[1])
@@ -57,7 +58,7 @@ class PaymentsService(BaseService):
 
             await self.__deliver_message(order_id=order_id, payment=payment)
 
-            return confirmation_url
+        return confirmation_url
 
 
 def get_payments_service(

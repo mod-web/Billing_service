@@ -24,7 +24,7 @@ class SubscriptionService(BaseService):
 
     async def get_subscriptions(self):
         stmt = text("""SELECT * FROM public.user_subscribes""")
-        if query_result := self.__execute_stmt(stmt):
+        if query_result := await self._execute_stmt(stmt):
             subscriptions = [i._asdict() for i in query_result.fetchall()]
             if not subscriptions:
                 raise HTTPException(status_code=404, detail="subscriptions not found")
@@ -73,7 +73,7 @@ class SubscriptionService(BaseService):
 
     async def get_type_subscriptions(self) -> list:
         stmt = text("""SELECT * FROM public.type_subscribes""")
-        if query_result := self.__execute_stmt(stmt):
+        if query_result := await self._execute_stmt(stmt):
             types = [i._asdict() for i in query_result.fetchall()]
             if not types:
                 raise HTTPException(status_code=404, detail="types not found")
@@ -110,29 +110,31 @@ class SubscriptionService(BaseService):
             'provider': provider,
         }
         order_url = f'http://{settings.billing.host}:{settings.billing.port}/api/v1/orders/'
+        order_id = ''
         async with aiohttp.ClientSession() as s:
             async with s.post(url=order_url, params=order_params) as response:
                 if response.status == 200:
                     order_id = await response.json()
-
-        payment_params = {'order_id': order_id}
-        payment_url = f'http://{settings.billing.host}:{settings.billing.port}/api/v1/payments/'
-        async with aiohttp.ClientSession() as s:
-            async with s.post(url=payment_url, params=payment_params) as response:
-                if response.status == 200:
-                    payment_link = await response.json()
-                    return payment_link
+        if order_id:
+            payment_params = {'order_id': order_id}
+            payment_url = f'http://{settings.billing.host}:{settings.billing.port}/api/v1/payments/'
+            async with aiohttp.ClientSession() as s:
+                async with s.post(url=payment_url, params=payment_params) as response:
+                    if response.status == 200:
+                        payment_link = await response.json()
+                        return payment_link
+        return ''
 
     async def change_subscription(self) -> dict:
         query = await update_without_renew()
         stmt = text(query)
-        if query_result := self.__execute_stmt(stmt):
+        if query_result := await self._execute_stmt(stmt):
             data_subscribe = query_result.fetchall()
             changed = [] if data_subscribe is None else [i[0] for i in data_subscribe]
 
         query = await get_renew_subscriptions()
         stmt = text(query)
-        if query_result := self.__execute_stmt(stmt):
+        if query_result := await self._execute_stmt(stmt):
             data_subscribe = query_result.fetchall()
             prolonging_subscriptions = [] if data_subscribe is None else [i._asdict() for i in data_subscribe]
 
