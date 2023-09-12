@@ -13,13 +13,15 @@ router = APIRouter()
 )
 async def start_payment(
     order_id: str,
-    provider: str,
+    # provider: str,
     payments_service: PaymentsService = Depends(get_payments_service),
 ) -> str:
-    match provider:
-        case 'yookassa':
-            pvd = Yookassa()
-        case _:
-            return {'status': 'provider is not supported'}
+    # match provider:
+    #     case 'yookassa':
+    #         pvd = Yookassa()
+    #     case _:
+    #         return {'status': 'provider is not supported'}
+
+    pvd = Yookassa()
 
     return await payments_service.start_payment(order_id=order_id, provider=pvd)

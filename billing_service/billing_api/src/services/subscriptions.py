@@ -47,7 +47,8 @@ class SubscriptionService(BaseService):
     async def update_subscription(self, action: str, subscription_id: str) -> str:
         subscribe_values = {'active': False, 'update_at': datetime.now()}
         if action == 'prolong':
-            subscribe_values.update(start_active_at=datetime.now())
+            subscribe_values.update(start_active_at=datetime.now(),
+                                    active=True)
         try:
             subscribe_res = await self.session.execute(
                 user_subscribes.update().where(
